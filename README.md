@@ -14,9 +14,8 @@ The backend system is available here (https://github.com/jhunter-twilio/outbound
 # use
 
 1. Create backend system by either 
-  - deploying to heroku [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?
+  - deploying to heroku [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy? template=https://github.com/jhunter-twilio/outbound-dialing-backend/tree/master)
   - cloning backend repository (https://github.com/jhunter-twilio/outbound-dialing-backend) following setup instructions and exposing with ngrok
- template=https://github.com/jhunter-twilio/outbound-dialing-backend/tree/master)
 2. Create a clone of this repository and update the line referencing the backend https://github.com/jhunter-twilio/plugin-flex-outbound-dialpad/blob/36c0bf8196496ec0adfa22dcac78746cc8f7fdf3/src/components/DialPad.js#L313
 3. run npm install
 4. run npm start
