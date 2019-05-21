@@ -1,0 +1,13 @@
+[
+  {
+    "name": "OutboundDialingWithConferencePlugin",
+    "version": "0.0.0",
+    "class": "OutboundDialingWithConferencePlugin",
+    "requires": [
+      {
+        "@twilio/flex-ui": "^1"
+      }
+    ],
+    "src": "http://127.0.0.1:8085"
+  }
+]
