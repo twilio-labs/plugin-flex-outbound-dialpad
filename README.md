@@ -4,7 +4,7 @@ This plugin is intended to demonstrate how to make outbound calls from twilio fl
 
 This plugin uses a custom built backend system to facilitate creation of outbound calls using Twilio Programmable Voice. These calls are enqueued straight back to the agent that made the call.  The backend system exposes a websocket to notify the front end client of changes to the call.  This enables automated state management in the front end to ensure there is no competing with other tasks.  As the calls are enqueued using Twiml, flex can accept the task reservation using reservation.conference() and the call from there is treated like any other call.  Transfers and supervisor monitoring are enabled.
 
-The backend system is available here (https://github.com/jhunter-twilio/outbound-dialing-backend) and can repiadly be deployed to heroku using the link provided 
+The backend system is available [here](https://github.com/jhunter-twilio/outbound-dialing-backend) and can repiadly be deployed to heroku using the link provided 
 
 
 
@@ -15,8 +15,8 @@ The backend system is available here (https://github.com/jhunter-twilio/outbound
 
 1. Create backend system by either 
   - deploying to heroku [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/jhunter-twilio/outbound-dialing-backend/tree/master)
-  - cloning backend repository (https://github.com/jhunter-twilio/outbound-dialing-backend) following setup instructions and exposing with ngrok
-2. Create a clone of this repository and update the line referencing the backend https://github.com/jhunter-twilio/plugin-flex-outbound-dialpad/blob/36c0bf8196496ec0adfa22dcac78746cc8f7fdf3/src/components/DialPad.js#L313
+  - cloning backend [repository](https://github.com/jhunter-twilio/outbound-dialing-backend) following the setup instructions and exposing with ngrok
+2. Create a clone of this repository and update the line referencing the [backend](https://github.com/jhunter-twilio/plugin-flex-outbound-dialpad/blob/36c0bf8196496ec0adfa22dcac78746cc8f7fdf3/src/components/DialPad.js#L313)
 3. run npm install
 4. run npm start
 
