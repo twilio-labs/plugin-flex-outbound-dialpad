@@ -16,9 +16,11 @@ The backend system is available [here](https://github.com/jhunter-twilio/outboun
 1. Create backend system by either 
     - deploying to heroku [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/jhunter-twilio/outbound-dialing-backend/tree/master)
     - cloning backend [repository](https://github.com/jhunter-twilio/outbound-dialing-backend) following the setup instructions and expose system with ngrok
-2. Create a clone of this repository and update the line referencing the [backend](https://github.com/jhunter-twilio/plugin-flex-outbound-dialpad/blob/36c0bf8196496ec0adfa22dcac78746cc8f7fdf3/src/components/DialPad.js#L313)
-3. run npm install
-4. run npm start
+2. Create a clone of this repository and update 
+    - the line referencing the [backend](https://github.com/jhunter-twilio/plugin-flex-outbound-dialpad/blob/36c0bf8196496ec0adfa22dcac78746cc8f7fdf3/src/components/DialPad.js#L313)
+    - the line referencing the [number](https://github.com/jhunter-twilio/plugin-flex-outbound-dialpad/blob/8024a7f02169e89a2addffbb63d22eb0b89221e9/src/components/DialPad.js#L382) you are calling from to a twilio number or a verified number 
+4. run npm install
+5. run npm start
 
 # in case you missed it
 When setting up the backend in heroku or local, you must ensure you have setup a dedicated task router worfklow for outbound calls and set the workflow sid in the environment configuration.  
@@ -27,6 +29,8 @@ When setting up the backend in heroku or local, you must ensure you have setup a
   - task.targetWorker==worker.contact_uri
 - make sure the filter matches to a queue with Everyone on it.  The default Everyone queue will work but if you want to seperate real time reporting for outbound calls, you'll want to make a dedicated queue for it with a queue expression
   - 1==1
+  
+When testing **ENSURE** you have added the phone number you are dialing out to, to verified numbers in the twilio console.  A production twilio environment will need be configured to not need this step.
 
 
 # change log
