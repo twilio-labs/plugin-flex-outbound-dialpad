@@ -441,8 +441,15 @@ export class DialPad extends React.Component {
     });
   }
   buttonPress(value) {
-    if (this.state.number.length < 13) {
-      this.setState({ number: this.state.number + value });
+    const activeCall = this.props.activeCall;
+
+    if (activeCall == "") {
+      if (this.state.number.length < 13) {
+        this.setState({ number: this.state.number + value });
+      }
+    } else {
+      console.log("activeCall", activeCall);
+      activeCall.sendDigits(value);
     }
   }
 
