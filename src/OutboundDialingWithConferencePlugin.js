@@ -3,7 +3,9 @@ import React from "react";
 import DialPadLauncher from "./components/DialPadLauncher";
 import DialPad from "./components/DialPad";
 
-import { registerReservationCreatedHandler } from "./utils/reservationCreatedHandler";
+import { registerReservationCreatedHandler } from "./eventListeners/workerClient/reservationCreated";
+
+import { registerAcceptTaskOverrides } from "./eventListeners/actionsFramework/acceptTask";
 
 const PLUGIN_NAME = "OutboundDialingWithConferencePlugin";
 
@@ -29,5 +31,6 @@ export default class OutboundDialingWithConferencePlugin extends FlexPlugin {
     );
 
     registerReservationCreatedHandler(manager);
+    registerAcceptTaskOverrides();
   }
 }

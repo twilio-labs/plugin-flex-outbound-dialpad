@@ -17,7 +17,7 @@ import Backspace from "@material-ui/icons/Backspace";
 import classNames from "classnames";
 import { connect } from "react-redux";
 
-import { takeOutboundCall } from "../utils/reservationCreatedHandler";
+import { takeOutboundCall } from "../eventListeners/workerClient/reservationCreated";
 
 const styles = theme => ({
   main: {
@@ -61,7 +61,6 @@ const styles = theme => ({
       opacity: ".4"
     }
   },
-
   numpadContainer: {
     margin: theme.spacing.unit
   },
@@ -83,6 +82,9 @@ const styles = theme => ({
     fontSize: "1.2em",
     fontWeight: "700",
     textAlign: "center"
+  },
+  functionButton: {
+    paddingBottom: "0%"
   },
   hide: {
     display: "disable"
@@ -264,8 +266,8 @@ export class DialPad extends React.Component {
                 style={{ color: "white" }}
                 color="primary"
                 className={classNames(
-                  this.props.call.callStatus === "ringing" ? classes.hide : "",
-                  classes.numberButton
+                  classes.numberButton,
+                  classes.functionButton
                 )}
                 onClick={e => {
                   this.dial(this.state.number);
@@ -286,7 +288,10 @@ export class DialPad extends React.Component {
                 variant="contained"
                 style={{ color: "white" }}
                 color="primary"
-                className={classNames(classes.numberButton)}
+                className={classNames(
+                  classes.numberButton,
+                  classes.functionButton
+                )}
                 onClick={e => this.hangup(this.props.call.callSid)}
               >
                 <CallEnd />
