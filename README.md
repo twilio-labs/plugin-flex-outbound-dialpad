@@ -19,7 +19,8 @@ The backend system is available [here](https://github.com/jhunter-twilio/outboun
    - the line referencing the [backend](https://github.com/jhunter-twilio/plugin-flex-outbound-dialpad/blob/36c0bf8196496ec0adfa22dcac78746cc8f7fdf3/src/components/DialPad.js#L313)
    - the line referencing the [number](https://github.com/jhunter-twilio/plugin-flex-outbound-dialpad/blob/8024a7f02169e89a2addffbb63d22eb0b89221e9/src/components/DialPad.js#L382) you are calling from to a twilio number or a verified number
 3. run npm install
-4. run npm start
+4. create your own public/appConfig.js based on the public/appConfig.example.js and include your own account number
+5. run npm start
 
 # in case you missed it
 
