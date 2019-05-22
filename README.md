@@ -12,7 +12,7 @@ The backend system is available [here](https://github.com/jhunter-twilio/outboun
 
 # use
 
-1. Create backend system by follow the instructions provided [here](https://github.com/jhunter-twilio/outbound-dialing-backend/blob/master/README.md)
+1. Create backend system by following the instructions provided [here](https://github.com/jhunter-twilio/outbound-dialing-backend/blob/master/README.md)
    
 2. Create a clone of this repository and update
    - the line referencing the [backend](https://github.com/jhunter-twilio/plugin-flex-outbound-dialpad/blob/36c0bf8196496ec0adfa22dcac78746cc8f7fdf3/src/components/DialPad.js#L313)
