@@ -87,7 +87,7 @@ const styles = theme => ({
     paddingBottom: "0%"
   },
   hide: {
-    display: "disable"
+    visibility: "hidden"
   }
 });
 
@@ -113,10 +113,17 @@ export class DialPad extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      websocketStatus: "closed",
       call: props.call,
       number: ""
     };
     this.webSocket = null;
+
+    this.ringSound = new Audio(
+      "https://freesound.org/data/previews/455/455413_7193358-lq.mp3"
+    );
+    this.ringSound.loop = true;
+    this.ringSound.volume = 0.5;
   }
 
   buttons = [
@@ -290,7 +297,8 @@ export class DialPad extends React.Component {
                 color="primary"
                 className={classNames(
                   classes.numberButton,
-                  classes.functionButton
+                  classes.functionButton,
+                  this.props.call.callStatus === "queued" ? classes.hide : ""
                 )}
                 onClick={e => this.hangup(this.props.call.callSid)}
               >
@@ -312,8 +320,6 @@ export class DialPad extends React.Component {
   }
 
   initWebSocket() {
-    const { closeViewFunction, setCallFunction } = this.props;
-
     this.webSocket = new WebSocket(
       "wss://outbound-dialing-backend.herokuapp.com/outboundDialWebsocket",
       null
@@ -324,39 +330,43 @@ export class DialPad extends React.Component {
     };
 
     this.webSocket.onopen = function() {
-      this.sendHello();
+      this.setState({ websocketStatus: "open" });
     }.bind(this);
 
     this.webSocket.onclose = function() {
-      console.debug("Closed websocket connection");
-    };
+      this.setState({ websocketStatus: "open" });
+    }.bind(this);
 
-    this.webSocket.onmessage = function(e) {
-      console.debug("Event recieved: ", e.data);
+    this.webSocket.onmessage = message => this.handleWebSocketMessage(message);
+  }
 
-      try {
-        var data = JSON.parse(e.data);
-        if (data.callSid && data.callStatus) {
-          setCallFunction(data);
+  handleWebSocketMessage(message) {
+    console.debug("Event recieved: ", message.data);
 
-          if (data.callStatus === "queued" || data.callStatus === "ringing") {
-            console.debug("call queued or ringing");
-          } else if (data.callStatus === "in-progress") {
-            console.debug("Call in progress, ending dialpad");
-            takeOutboundCall();
-            closeViewFunction();
-          } else if (
-            data.callStatus === "completed" ||
-            data.callStatus === "canceled"
-          ) {
-            console.debug("Call terminated, ending dialpad");
-            //TODO add notification caller hungup
-          }
+    try {
+      var data = JSON.parse(message.data);
+      if (data.callSid && data.callStatus) {
+        this.props.setCallFunction(data);
+
+        if (data.callStatus === "ringing") {
+          this.ringSound.play();
+        } else if (data.callStatus === "in-progress") {
+          this.ringSound.pause();
+          this.ringSound.currentTime = 0;
+          takeOutboundCall();
+          this.props.closeViewFunction();
+        } else if (
+          data.callStatus === "completed" ||
+          data.callStatus === "canceled"
+        ) {
+          this.ringSound.pause();
+          this.ringSound.currentTime = 0;
+          //TODO add notification caller hungup
         }
-      } catch (error) {
-        console.warn("Unrecognized payload: ", e.data);
       }
-    };
+    } catch (error) {
+      console.warn("Unrecognized payload: ", message.data);
+    }
   }
 
   componentDidMount() {
@@ -368,44 +378,54 @@ export class DialPad extends React.Component {
   }
 
   componentWillUnmount() {
+    console.log("Unmounting Dialpad");
     this.webSocket.close();
     document.removeEventListener("keydown", this.eventkeydownListener, false);
     document.removeEventListener("keyup", this.eventListener, false);
+    this.ringSound.pause();
   }
 
   dial(number) {
-    console.debug("Calling: ", number);
+    if (this.state.websocketStatus === "open" && this.state.number != "") {
+      console.log("Calling: ", number);
 
-    Actions.invokeAction("SetActivity", {
-      activityName: "Busy"
-    }).then(() => {
-      if (!this.props.available) {
-        this.webSocket.send(
-          JSON.stringify({
-            method: "call",
-            to: number,
-            from: "+12565769948",
-            workerContactUri: this.props.workerContactUri
-          })
-        );
-      }
-    });
+      Actions.invokeAction("SetActivity", {
+        activityName: "Busy"
+      }).then(() => {
+        if (!this.props.available) {
+          this.webSocket.send(
+            JSON.stringify({
+              method: "call",
+              to: number,
+              from: "+12565769948",
+              workerContactUri: this.props.workerContactUri
+            })
+          );
+        }
+      });
+    } else {
+      console.log("Websocket not ready");
+    }
   }
 
   hangup(callSid) {
     console.debug("Hanging up call: ", callSid);
 
-    this.webSocket.send(
-      JSON.stringify({
-        method: "hangup",
-        callSid: callSid
-      })
-    );
+    // only hangup if call is actually ringing
+    // if hangup occurs while queued, twilio fails to handle future hang up requests
+    if (this.props.call.callStatus === "ringing") {
+      this.webSocket.send(
+        JSON.stringify({
+          method: "hangup",
+          callSid: callSid
+        })
+      );
 
-    // TODO: Make this more sophisticated form of activity state management
-    Actions.invokeAction("SetActivity", {
-      activityName: "Idle"
-    });
+      // TODO: Make this more sophisticated form of activity state management
+      Actions.invokeAction("SetActivity", {
+        activityName: "Idle"
+      });
+    }
   }
 
   eventListener = e => this.keyPressListener(e);
@@ -448,7 +468,7 @@ export class DialPad extends React.Component {
         this.setState({ number: this.state.number + value });
       }
     } else {
-      console.log("activeCall", activeCall);
+      console.debug("activeCall", activeCall);
       activeCall.sendDigits(value);
     }
   }
@@ -458,9 +478,6 @@ export class DialPad extends React.Component {
   }
 
   buttonZeroPress(e, threshold, item) {
-    console.log("EVENT: ", e);
-    console.log("hasEnd", threshold);
-    console.log("item", item);
     e.preventDefault();
     e.stopPropagation();
     if (!threshold) {
@@ -469,9 +486,7 @@ export class DialPad extends React.Component {
   }
 
   render() {
-    const { classes, theme } = this.props;
-
-    console.log("THEME IS: ", theme);
+    const { classes } = this.props;
 
     return (
       <div className={classes.main}>
