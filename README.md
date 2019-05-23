@@ -27,6 +27,8 @@ When setting up the backend in heroku or local, you must ensure you have setup a
 
 # change log
 v1.1 - added ringtone when dialing, DTMF tones while on a call and better state management.
+   - breaking change to url, must align with backend
+
 v1.0 - initial release
 
 # TODOs
