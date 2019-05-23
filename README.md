@@ -26,7 +26,7 @@ The backend system is available [here](https://github.com/jhunter-twilio/outboun
 When setting up the backend in heroku or local, you must ensure you have setup a dedicated task router worfklow for outbound calls and set the workflow sid in the environment configuration.
 
 # change log
-
+v1.1 - added ringtone when dialing, DTMF tones while on a call and better state management.
 v1.0 - initial release
 
 # TODOs
