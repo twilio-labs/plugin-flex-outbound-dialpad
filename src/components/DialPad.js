@@ -315,7 +315,7 @@ export class DialPad extends React.Component {
     const { closeViewFunction, setCallFunction } = this.props;
 
     this.webSocket = new WebSocket(
-      "wss://outbound-dialing-backend.herokuapp.com/websocket",
+      "wss://outbound-dialing-backend.herokuapp.com/outboundDialWebsocket",
       null
     );
 
