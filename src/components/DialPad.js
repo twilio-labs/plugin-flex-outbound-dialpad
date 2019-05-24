@@ -119,6 +119,8 @@ export class DialPad extends React.Component {
     };
     this.webSocket = null;
 
+    //audio credit https://freesound.org/people/AnthonyRamirez/sounds/455413/
+    //creative commons license
     this.ringSound = new Audio(
       "https://freesound.org/data/previews/455/455413_7193358-lq.mp3"
     );
@@ -258,7 +260,7 @@ export class DialPad extends React.Component {
     );
   }
 
-  functionButtons = () => {
+  functionButtons() {
     const { classes } = this.props;
 
     return (
@@ -311,7 +313,7 @@ export class DialPad extends React.Component {
         )}
       </div>
     );
-  };
+  }
 
   sendHello() {
     if (this.webSocket.readyState === WebSocket.OPEN) {
@@ -383,10 +385,15 @@ export class DialPad extends React.Component {
     document.removeEventListener("keydown", this.eventkeydownListener, false);
     document.removeEventListener("keyup", this.eventListener, false);
     this.ringSound.pause();
+    this.props.setCallFunction({ callSid: "", callStatus: "" });
   }
 
   dial(number) {
-    if (this.state.websocketStatus === "open" && this.state.number != "") {
+    if (
+      this.state.websocketStatus === "open" &&
+      this.state.number !== "" &&
+      this.props.call.callStatus !== "dialing"
+    ) {
       console.log("Calling: ", number);
 
       Actions.invokeAction("SetActivity", {
@@ -401,6 +408,7 @@ export class DialPad extends React.Component {
               workerContactUri: this.props.workerContactUri
             })
           );
+          this.props.setCallFunction({ callSid: "", callStatus: "dialing" });
         }
       });
     } else {
@@ -440,6 +448,7 @@ export class DialPad extends React.Component {
   }
 
   keyPressListener(e) {
+    var callStatus = this.props.call.callStatus;
     e.preventDefault();
     e.stopPropagation();
     if ((e.keyCode > 47 && e.keyCode < 58) || e.keyCode === 187) {
@@ -447,7 +456,15 @@ export class DialPad extends React.Component {
       this.buttonPress(e.key);
     } else if (e.keyCode === 13) {
       //listen for enter
-      this.dial(this.state.number);
+      if (callStatus === "ringing" || callStatus === "in-progress") {
+        this.hangup(this.props.call.callSid);
+      } else if (
+        callStatus === "" ||
+        callStatus === "completed" ||
+        callStatus === "canceled"
+      ) {
+        this.dial(this.state.number);
+      }
     }
   }
 
@@ -463,7 +480,7 @@ export class DialPad extends React.Component {
   buttonPress(value) {
     const activeCall = this.props.activeCall;
 
-    if (activeCall == "") {
+    if (activeCall === "") {
       if (this.state.number.length < 13) {
         this.setState({ number: this.state.number + value });
       }
