@@ -1,5 +1,5 @@
 import React from "react";
-import { Actions } from "@twilio/flex-ui";
+import { Actions, Notifications } from "@twilio/flex-ui";
 import {
   withStyles,
   MuiThemeProvider,
@@ -322,13 +322,18 @@ export class DialPad extends React.Component {
   }
 
   initWebSocket() {
+    var backendHostname = "outbound-dialing-backend.herokuapp.com";
+
     this.webSocket = new WebSocket(
-      "wss://outbound-dialing-backend.herokuapp.com/outboundDialWebsocket",
+      "wss://" + backendHostname + "/outboundDialWebsocket2",
       null
     );
 
     this.webSocket.onerror = function() {
       console.error("Connection Error");
+      Notifications.showNotification("WebsocketError", {
+        url: backendHostname
+      });
     };
 
     this.webSocket.onopen = function() {

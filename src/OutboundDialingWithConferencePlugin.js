@@ -7,6 +7,8 @@ import { registerReservationCreatedHandler } from "./eventListeners/workerClient
 
 import { registerAcceptTaskOverrides } from "./eventListeners/actionsFramework/acceptTask";
 
+import "./notifications/CustomNotifications";
+
 const PLUGIN_NAME = "OutboundDialingWithConferencePlugin";
 
 export default class OutboundDialingWithConferencePlugin extends FlexPlugin {
