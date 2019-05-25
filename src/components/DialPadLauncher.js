@@ -33,7 +33,7 @@ class DialPagDialog extends React.Component {
 
   setCall = callUpdate => {
     this.setState({ call: callUpdate });
-    console.log("call state set");
+    console.log("call state set: ", callUpdate);
   };
 
   render() {

@@ -276,7 +276,8 @@ export class DialPad extends React.Component {
                 color="primary"
                 className={classNames(
                   classes.numberButton,
-                  classes.functionButton
+                  classes.functionButton,
+                  this.props.call.callStatus === "dialing" ? classes.hide : ""
                 )}
                 onClick={e => {
                   this.dial(this.state.number);
