@@ -26,7 +26,11 @@ class DialPagDialog extends React.Component {
 
   handleClose = () => {
     const { call } = this.state;
-    if (call.callStatus !== "queued" && call.callStatus !== "ringing") {
+    if (
+      call.callStatus !== "dialing" &&
+      call.callStatus !== "queued" &&
+      call.callStatus !== "ringing"
+    ) {
       this.props.onClose();
     }
   };
