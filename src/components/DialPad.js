@@ -322,10 +322,10 @@ export class DialPad extends React.Component {
   }
 
   initWebSocket() {
-    var backendHostname = "outbound-dialing-backend.herokuapp.com";
+    var backendHostname = "48bbdcac.ngrok.io";
 
     this.webSocket = new WebSocket(
-      "wss://" + backendHostname + "/outboundDialWebsocket2",
+      "wss://" + backendHostname + "/outboundDialWebsocket",
       null
     );
 
@@ -352,7 +352,7 @@ export class DialPad extends React.Component {
 
     try {
       var data = JSON.parse(message.data);
-      if (data.callSid && data.callStatus) {
+      if (data.messageType === "callUpdate") {
         this.props.setCallFunction(data);
 
         if (data.callStatus === "ringing") {
@@ -370,6 +370,11 @@ export class DialPad extends React.Component {
           this.ringSound.currentTime = 0;
           //TODO add notification caller hungup
         }
+      } else if (data.messageType === "error") {
+        Notifications.showNotification("BackendError", {
+          message: data.message
+        });
+        this.props.setCallFunction({ callSid: "", callStatus: "" });
       }
     } catch (error) {
       console.warn("Unrecognized payload: ", message.data);
