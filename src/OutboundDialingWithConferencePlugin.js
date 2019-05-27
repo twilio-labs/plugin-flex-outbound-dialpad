@@ -14,6 +14,7 @@ const PLUGIN_NAME = "OutboundDialingWithConferencePlugin";
 export default class OutboundDialingWithConferencePlugin extends FlexPlugin {
   constructor() {
     super(PLUGIN_NAME);
+    this.backendHostname = "outbound-dialing-backend.herokuapp.com";
   }
 
   /**
@@ -24,12 +25,12 @@ export default class OutboundDialingWithConferencePlugin extends FlexPlugin {
    * @param manager { import('@twilio/flex-ui').Manager }
    */
   init(flex, manager) {
-    // Dialpad
-    flex.SideNav.Content.add(<DialPadLauncher key="sidebardialerbutton" />);
-    flex.ViewCollection.Content.add(
-      <flex.View name="dialer" key="dialer1">
-        <DialPad key="dialpadview" />
-      </flex.View>
+    // Add Dialpad
+    flex.SideNav.Content.add(
+      <DialPadLauncher
+        key="sidebardialerbutton"
+        backendHostname={this.backendHostname}
+      />
     );
 
     registerReservationCreatedHandler(manager);

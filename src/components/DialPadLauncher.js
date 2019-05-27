@@ -14,7 +14,7 @@ const StyledDialog = withStyles({
   }
 })(({ classes, ...other }) => <Dialog className={classes.root} {...other} />);
 
-class DialPagDialog extends React.Component {
+class DialPadDialog extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -64,6 +64,7 @@ class DialPagDialog extends React.Component {
         <DialPad
           key="dialpadModal"
           call={this.state.call}
+          backendHostname={this.props.backendHostname}
           setCallFunction={this.setCall}
           closeViewFunction={this.handleClose}
         />
@@ -72,10 +73,12 @@ class DialPagDialog extends React.Component {
   }
 }
 
-DialPagDialog.propTypes = {
+DialPadDialog.propTypes = {
   classes: PropTypes.object.isRequired,
-  onClose: PropTypes.func,
-  selectedValue: PropTypes.string
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  selectedValue: PropTypes.string.isRequired,
+  backendHostname: PropTypes.string.isRequired
 };
 
 const CloseButton = styled("div")`
@@ -113,10 +116,11 @@ export default class DialPadLauncher extends React.Component {
         >
           Dialpad
         </SideLink>
-        <DialPagDialog
+        <DialPadDialog
           selectedValue={this.state.selectedValue}
           open={this.state.open}
           onClose={this.handleClose}
+          backendHostname={this.props.backendHostname}
         />
       </div>
     );

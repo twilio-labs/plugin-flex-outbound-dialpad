@@ -323,7 +323,7 @@ export class DialPad extends React.Component {
   }
 
   initWebSocket() {
-    var backendHostname = "outbound-dialing-backend.herokuapp.com";
+    var backendHostname = this.props.backendHostname;
 
     this.webSocket = new WebSocket(
       "wss://" + backendHostname + "/outboundDialWebsocket",
@@ -395,7 +395,7 @@ export class DialPad extends React.Component {
     this.webSocket.close();
     document.removeEventListener("keydown", this.eventkeydownListener, false);
     document.removeEventListener("keyup", this.eventListener, false);
-    this.ringSound.pause();
+    this.ringSound = null;
     this.props.setCallFunction({ callSid: "", callStatus: "" });
   }
 
