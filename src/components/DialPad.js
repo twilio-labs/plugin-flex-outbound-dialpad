@@ -1,5 +1,5 @@
 import React from "react";
-import { Actions, Notifications } from "@twilio/flex-ui";
+import { Actions, Notifications, Manager } from "@twilio/flex-ui";
 import {
   withStyles,
   MuiThemeProvider,
@@ -326,8 +326,8 @@ export class DialPad extends React.Component {
     var backendHostname = this.props.backendHostname;
 
     this.webSocket = new WebSocket(
-      "wss://" + backendHostname + "/outboundDialWebsocket",
-      null
+      "wss://" + backendHostname + "/websocket/outboundDial",
+      Manager.getInstance().user.token
     );
 
     this.webSocket.onerror = function() {

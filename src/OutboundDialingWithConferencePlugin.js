@@ -14,7 +14,7 @@ const PLUGIN_NAME = "OutboundDialingWithConferencePlugin";
 export default class OutboundDialingWithConferencePlugin extends FlexPlugin {
   constructor() {
     super(PLUGIN_NAME);
-    this.backendHostname = "outbound-dialing-backend.herokuapp.com";
+    this.backendHostname = "backend-hostname.com";
   }
 
   /**
