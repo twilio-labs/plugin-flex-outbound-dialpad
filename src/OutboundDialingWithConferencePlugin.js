@@ -1,7 +1,6 @@
 import { FlexPlugin } from "flex-plugin";
 import React from "react";
-import DialPadLauncher from "./components/DialPadLauncher";
-import DialPad from "./components/DialPad";
+import DialPadLauncher from "./components/dialpad/DialPadLauncher";
 
 import { registerReservationCreatedHandler } from "./eventListeners/workerClient/reservationCreated";
 

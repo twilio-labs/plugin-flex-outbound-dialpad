@@ -17,7 +17,7 @@ import Backspace from "@material-ui/icons/Backspace";
 import classNames from "classnames";
 import { connect } from "react-redux";
 
-import { takeOutboundCall } from "../eventListeners/workerClient/reservationCreated";
+import { takeOutboundCall } from "../../eventListeners/workerClient/reservationCreated";
 
 const styles = theme => ({
   main: {
