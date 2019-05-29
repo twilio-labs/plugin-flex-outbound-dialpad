@@ -342,7 +342,7 @@ export class DialPad extends React.Component {
     }.bind(this);
 
     this.webSocket.onclose = function() {
-      this.setState({ websocketStatus: "open" });
+      this.setState({ websocketStatus: "closed" });
     }.bind(this);
 
     this.webSocket.onmessage = message => this.handleWebSocketMessage(message);
