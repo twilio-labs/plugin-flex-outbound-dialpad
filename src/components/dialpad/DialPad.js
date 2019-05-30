@@ -409,19 +409,47 @@ export class DialPad extends React.Component {
 
       Actions.invokeAction("SetActivity", {
         activityName: "Busy"
-      }).then(() => {
-        if (!this.props.available) {
-          this.webSocket.send(
-            JSON.stringify({
-              method: "call",
-              to: number,
-              from: "+12565769948",
-              workerContactUri: this.props.workerContactUri
+      })
+        .then(() => {
+          if (!this.props.available) {
+            this.webSocket.send(
+              JSON.stringify({
+                method: "call",
+                to: number,
+                from: "+16606285061",
+                workerContactUri: this.props.workerContactUri
+              })
+            );
+            this.props.setCallFunction({ callSid: "", callStatus: "dialing" });
+          }
+        })
+        .catch(error => {
+          console.error("Couldnt switch to 'Busy' so trying 'Offline'");
+          Actions.invokeAction("SetActivity", {
+            activityName: "Offline"
+          })
+            .then(() => {
+              if (!this.props.available) {
+                this.webSocket.send(
+                  JSON.stringify({
+                    method: "call",
+                    to: number,
+                    from: "+16606285061",
+                    workerContactUri: this.props.workerContactUri
+                  })
+                );
+                this.props.setCallFunction({
+                  callSid: "",
+                  callStatus: "dialing"
+                });
+              }
             })
-          );
-          this.props.setCallFunction({ callSid: "", callStatus: "dialing" });
-        }
-      });
+            .catch(error => {
+              console.error(
+                "Attempted to auto switch to inactive state but activity doesnt exist, try remapping"
+              );
+            });
+        });
     } else {
       console.log("Websocket not ready");
     }
@@ -443,6 +471,17 @@ export class DialPad extends React.Component {
       // TODO: Make this more sophisticated form of activity state management
       Actions.invokeAction("SetActivity", {
         activityName: "Idle"
+      }).catch(error => {
+        console.error(
+          "Attempted to go idle but activity not available, trying 'Available'"
+        );
+        Actions.invokeAction("SetActivity", {
+          activityName: "Available"
+        }).catch(error => {
+          console.error(
+            "Attempted to auto switch to Idle state but activity doesnt exist, try remapping which state to auto switch to"
+          );
+        });
       });
     }
   }
