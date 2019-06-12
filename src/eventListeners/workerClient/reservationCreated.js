@@ -16,7 +16,6 @@ export function takeOutboundCall() {
 
 function handleReservationTask(reservation) {
   if (IsOutbound) {
-    console.log("RESERVATION ATTS:", reservation.task.attributes);
     if (
       reservation.task.attributes.type === "outbound" &&
       reservation.task.attributes.autoAnswer === "true"
@@ -33,7 +32,6 @@ function handleReservationTask(reservation) {
 
       IsOutbound = false;
     } else if (reservation.task.taskChannelUniqueName === "voice") {
-      // console.log("reject else ", reservation)
       Actions.invokeAction("RejectTask", {
         sid: reservation.sid
       });
