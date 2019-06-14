@@ -388,6 +388,7 @@ export class DialPad extends React.Component {
 
     document.addEventListener("keydown", this.eventkeydownListener, false);
     document.addEventListener("keyup", this.eventListener, false);
+    document.addEventListener("paste", this.pasteListener, false);
   }
 
   componentWillUnmount() {
@@ -395,6 +396,7 @@ export class DialPad extends React.Component {
     this.webSocket.close();
     document.removeEventListener("keydown", this.eventkeydownListener, false);
     document.removeEventListener("keyup", this.eventListener, false);
+    document.removeEventListener("paste", this.pasteListener, false);
     this.ringSound = null;
     this.props.setCallFunction({ callSid: "", callStatus: "" });
   }
@@ -416,7 +418,7 @@ export class DialPad extends React.Component {
               JSON.stringify({
                 method: "call",
                 to: number,
-                from: "+16606285061",
+                from: "+12565769948",
                 workerContactUri: this.props.workerContactUri
               })
             );
@@ -488,6 +490,14 @@ export class DialPad extends React.Component {
 
   eventListener = e => this.keyPressListener(e);
   eventkeydownListener = e => this.keydownListener(e);
+  pasteListener = e => {
+    const paste = (e.clipboardData || window.clipboardData)
+      .getData("text")
+      .replace(/\D/g, ""); //strip all non numeric characters from paste
+    for (var i = 0; i < paste.length; i++) {
+      this.buttonPress(paste.charAt(i));
+    }
+  };
 
   keydownListener(e) {
     if (e.keyCode === 8) {
