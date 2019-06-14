@@ -11,6 +11,17 @@ export function takeOutboundCall() {
 
   Actions.invokeAction("SetActivity", {
     activityName: "Idle"
+  }).catch(error => {
+    console.error(
+      "Attempted to go idle but activity not available, trying 'Available'"
+    );
+    Actions.invokeAction("SetActivity", {
+      activityName: "Available"
+    }).catch(error => {
+      console.error(
+        "Attempted to auto switch to Idle state but activity doesnt exist, try remapping which state to auto switch to"
+      );
+    });
   });
 }
 

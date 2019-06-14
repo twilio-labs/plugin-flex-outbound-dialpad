@@ -25,6 +25,8 @@ The backend system is available [here](https://github.com/jhunter-twilio/twilio-
 
 When setting up the backend in heroku or local, you must ensure you have setup a dedicated task router worfklow for outbound calls and set the workflow sid in the environment configuration.
 
+Also, the plugin assumes an acitvity of "Busy" or "Offline" is configured for making the worker automatically unavailable, and it assumes activties "Idle" or "Available" are configured for automatically going available, if these are not worker activity states that are available, you can either add them or update the code to change to a different state.
+
 # change log
 v1.1 - added ringtone when dialing, DTMF tones while on a call and better state management.
    - breaking change to url, must align with backend
@@ -35,5 +37,3 @@ v1.0 - initial release
 
 1. improve styling to better match base palette
 2. enhance state management so dialing and hanging up puts you back to starting state and not just "available"
-3. Add alert if websocket connection is unable to connect or gets terminated unexpectedly
-4. link dialpad into active call to send DTMF tones
