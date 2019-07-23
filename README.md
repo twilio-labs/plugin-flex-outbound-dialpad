@@ -13,7 +13,7 @@ The backend system is available [here](https://github.com/jhunter-twilio/twilio-
 # use
 
 1. Create backend system by following the instructions provided [here](https://github.com/jhunter-twilio/twilio-flex-sample-backend/blob/master/README.md)
-   
+
 2. Create a clone of this repository and update
    - the line referencing the [backend](https://github.com/jhunter-twilio/plugin-flex-outbound-dialpad/blob/2c358a49813f6c9f0d17bd39cd315646fcbaed84/src/OutboundDialingWithConferencePlugin.js#L17)
    - the line referencing the [number](https://github.com/jhunter-twilio/plugin-flex-outbound-dialpad/blob/8024a7f02169e89a2addffbb63d22eb0b89221e9/src/components/DialPad.js#L382) you are calling from to a twilio number or a verified number associated with your account.
@@ -28,10 +28,16 @@ When setting up the backend in heroku or local, you must ensure you have setup a
 Also, the plugin assumes an acitvity of "Busy" or "Offline" is configured for making the worker automatically unavailable, and it assumes activties "Idle" or "Available" are configured for automatically going available, if these are not worker activity states that are available, you can either add them or update the code to change to a different state.
 
 # change log
+
 v1.1 - added ringtone when dialing, DTMF tones while on a call and better state management.
-   - breaking change to url, must align with backend
+
+- breaking change to url, must align with backend
 
 v1.0 - initial release
+
+## Code of Conduct
+
+Please be aware that this project has a [Code of Conduct](https://github.com/twilio-labs/.github/blob/master/CODE_OF_CONDUCT.md). The tldr; is to just be excellent to each other ❤️
 
 # TODOs
 
