@@ -14,6 +14,7 @@ export default class OutboundDialingWithConferencePlugin extends FlexPlugin {
   constructor() {
     super(PLUGIN_NAME);
     this.backendHostname = "backend-hostname.com";
+    this.fromNumber = "+11234567890"; // twilio account or verified number
   }
 
   /**
@@ -29,6 +30,7 @@ export default class OutboundDialingWithConferencePlugin extends FlexPlugin {
       <DialPadLauncher
         key="sidebardialerbutton"
         backendHostname={this.backendHostname}
+        fromNumber={this.fromNumber}
       />
     );
 

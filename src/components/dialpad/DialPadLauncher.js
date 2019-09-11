@@ -65,6 +65,7 @@ class DialPadDialog extends React.Component {
           key="dialpadModal"
           call={this.state.call}
           backendHostname={this.props.backendHostname}
+          fromNumber={this.props.fromNumber}
           setCallFunction={this.setCall}
           closeViewFunction={this.handleClose}
         />
@@ -121,6 +122,7 @@ export default class DialPadLauncher extends React.Component {
           open={this.state.open}
           onClose={this.handleClose}
           backendHostname={this.props.backendHostname}
+          fromNumber={this.props.fromNumber}
         />
       </div>
     );
