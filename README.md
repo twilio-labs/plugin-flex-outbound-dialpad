@@ -23,7 +23,7 @@ The backend system is available [here](https://github.com/jhunter-twilio/twilio-
 
 # in case you missed it
 
-When setting up the backend in heroku or local, you must ensure you have setup a dedicated task router worfklow for outbound calls and set the workflow sid in the environment configuration.
+When setting up the backend in heroku or local, you must ensure you have setup a dedicated task router workflow for outbound calls and set the workflow sid in the environment configuration.
 
 Also, the plugin assumes an acitvity of "Busy" or "Offline" is configured for making the worker automatically unavailable, and it assumes activties "Idle" or "Available" are configured for automatically going available, if these are not worker activity states that are available, you can either add them or update the code to change to a different state.
 
