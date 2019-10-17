@@ -4,18 +4,18 @@ This plugin is intended to demonstrate how to make outbound calls from [Twilio F
 
 This plugin uses a custom built backend system to facilitate creation of outbound calls using Twilio Programmable Voice. These calls are enqueued straight back to the agent that made the call. The backend system exposes a websocket to notify the front end client of changes to the call. This enables automated state management in the front end to ensure there is no competing with other tasks. As the calls are enqueued using Twiml, flex can accept the task reservation using `reservation.conference()` and the call from there is treated like any other call. Transfers and supervisor monitoring are enabled.
 
-The backend system is available [here](https://github.com/jhunter-twilio/twilio-flex-sample-backend) and can rapidly be deployed to Heroku using the link provided
+The backend system is available [here](https://github.com/twilio-labs/twilio-flex-sample-backend) and can rapidly be deployed to Heroku using the link provided
 
 # Dialpad
 
-![alt text](https://raw.githubusercontent.com/jhunter-twilio/plugin-flex-outbound-dialpad/master/screenshot/dialpad.png)
+![alt text](https://raw.githubusercontent.com/twilio-labs/plugin-flex-outbound-dialpad/master/screenshot/dialpad.png)
 
 # How to use
 
-1. Create a backend system by following the instructions provided [here](https://github.com/jhunter-twilio/twilio-flex-sample-backend/blob/master/README.md)
+1. Create a backend system by following the instructions provided [here](https://github.com/twilio-labs/twilio-flex-sample-backend/blob/master/README.md)
 
 2. Create a clone of this repository and update
-   - the line referencing the [backend](https://github.com/jhunter-twilio/plugin-flex-outbound-dialpad/blob/2c358a49813f6c9f0d17bd39cd315646fcbaed84/src/OutboundDialingWithConferencePlugin.js#L17)
+   - the line referencing the [backend](https://github.com/twilio-labs/plugin-flex-outbound-dialpad/blob/2c358a49813f6c9f0d17bd39cd315646fcbaed84/src/OutboundDialingWithConferencePlugin.js#L17)
    - the line referencing the [number](https://github.com/twilio-labs/plugin-flex-outbound-dialpad/blob/f100c4f83613a14ea2b947bc85ffe765e4e10034/src/OutboundDialingWithConferencePlugin.js#L17) you are calling from to a twilio number or a verified number associated with your account.
 3. run `npm install`
 4. create your own `public/appConfig.js` based on the `public/appConfig.example.js` and include your own account number
