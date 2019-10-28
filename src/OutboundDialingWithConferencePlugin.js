@@ -1,10 +1,11 @@
 import { FlexPlugin } from "flex-plugin";
 import React from "react";
 import DialPadLauncher from "./components/dialpad/DialPadLauncher";
+import { loadExternalTransferInterface } from "./components/external-transfer"
 
-import { registerReservationCreatedHandler } from "./eventListeners/workerClient/reservationCreated";
+import { registerReservationCreatedExtensions } from "./eventListeners/workerClient/reservationCreated";
 
-import { registerAcceptTaskOverrides } from "./eventListeners/actionsFramework/acceptTask";
+import { registerActionExtensions } from "./eventListeners/actionsFramework"
 
 import "./notifications/CustomNotifications";
 
@@ -34,7 +35,8 @@ export default class OutboundDialingWithConferencePlugin extends FlexPlugin {
       />
     );
 
-    registerReservationCreatedHandler(manager);
-    registerAcceptTaskOverrides();
+    loadExternalTransferInterface(flex, manager, this.props)
+    registerReservationCreatedExtensions(manager);
+    registerActionExtensions();
   }
 }
