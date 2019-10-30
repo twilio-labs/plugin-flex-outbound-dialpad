@@ -1,5 +1,5 @@
 import React from "react";
-import { Actions, Notifications, Manager } from "@twilio/flex-ui";
+import { Actions, Manager } from "@twilio/flex-ui";
 import {
   withStyles,
   MuiThemeProvider,
@@ -17,7 +17,10 @@ import Backspace from "@material-ui/icons/Backspace";
 import classNames from "classnames";
 import { connect } from "react-redux";
 
+
 import { takeOutboundCall } from "../../eventListeners/workerClient/reservationCreated";
+
+import { FUNCTIONS_HOSTNAME, DEFAULT_FROM_NUMBER, SYNC_CLIENT } from "../../OutboundDialingWithConferencePlugin"
 
 const styles = theme => ({
   main: {
@@ -113,11 +116,12 @@ export class DialPad extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      websocketStatus: "closed",
-      call: props.call,
       number: ""
     };
-    this.webSocket = null;
+
+    this.token = Manager.getInstance().user.token;
+    this.syncClient = SYNC_CLIENT;
+    this.syncDocName = `${this.props.workerContactUri}.outbound-call`;
 
     //audio credit https://freesound.org/people/AnthonyRamirez/sounds/455413/
     //creative commons license
@@ -266,125 +270,93 @@ export class DialPad extends React.Component {
     return (
       <div className={classes.numpadRowContainer} style={{ marginBottom: 0 }}>
         {this.props.call.callStatus !== "queued" &&
-        this.props.call.callStatus !== "ringing" &&
-        this.props.activeCall === "" ? (
-          <div className={classes.numberButtonContainer}>
-            <MuiThemeProvider theme={greenButton}>
-              <Button
-                variant="contained"
-                style={{ color: "white" }}
-                color="primary"
-                className={classNames(
-                  classes.numberButton,
-                  classes.functionButton,
-                  this.props.call.callStatus === "dialing" ? classes.hide : ""
-                )}
-                onClick={e => {
-                  this.dial(this.state.number);
-                }}
-              >
-                <Phone />
-              </Button>
-            </MuiThemeProvider>
-          </div>
-        ) : (
-          <div />
-        )}
+          this.props.call.callStatus !== "ringing" &&
+          this.props.activeCall === "" ? (
+            <div className={classes.numberButtonContainer}>
+              <MuiThemeProvider theme={greenButton}>
+                <Button
+                  variant="contained"
+                  style={{ color: "white" }}
+                  color="primary"
+                  className={classNames(
+                    classes.numberButton,
+                    classes.functionButton,
+                    this.props.call.callStatus === "dialing" ? classes.hide : ""
+                  )}
+                  onClick={e => {
+                    this.dial(this.state.number);
+                  }}
+                >
+                  <Phone />
+                </Button>
+              </MuiThemeProvider>
+            </div>
+          ) : (
+            <div />
+          )}
         {this.props.call.callStatus === "queued" ||
-        this.props.call.callStatus === "ringing" ? (
-          <div className={classes.numberButtonContainer}>
-            <MuiThemeProvider theme={redButton}>
-              <Button
-                variant="contained"
-                style={{ color: "white" }}
-                color="primary"
-                className={classNames(
-                  classes.numberButton,
-                  classes.functionButton,
-                  this.props.call.callStatus === "queued" ? classes.hide : ""
-                )}
-                onClick={e => this.hangup(this.props.call.callSid)}
-              >
-                <CallEnd />
-              </Button>
-            </MuiThemeProvider>
-          </div>
-        ) : (
-          <div />
-        )}
+          this.props.call.callStatus === "ringing" ? (
+            <div className={classes.numberButtonContainer}>
+              <MuiThemeProvider theme={redButton}>
+                <Button
+                  variant="contained"
+                  style={{ color: "white" }}
+                  color="primary"
+                  className={classNames(
+                    classes.numberButton,
+                    classes.functionButton,
+                    this.props.call.callStatus === "queued" ? classes.hide : ""
+                  )}
+                  onClick={e => this.hangup(this.props.call.callSid)}
+                >
+                  <CallEnd />
+                </Button>
+              </MuiThemeProvider>
+            </div>
+          ) : (
+            <div />
+          )}
       </div>
     );
   }
 
-  sendHello() {
-    if (this.webSocket.readyState === WebSocket.OPEN) {
-      this.webSocket.send("Hello, i am connected");
+  updateStateFromSyncDoc(docObject) {
+    console.log(docObject);
+    this.props.setCallFunction(docObject);
+
+    if (docObject.callStatus === "ringing") {
+      this.ringSound.play();
+    } else if (docObject.callStatus === "in-progress") {
+      this.ringSound.pause();
+      this.ringSound.currentTime = 0;
+      takeOutboundCall();
+      this.props.closeViewFunction();
+    } else if (
+      docObject.callStatus === "completed" ||
+      docObject.callStatus === "canceled"
+    ) {
+      this.ringSound.pause();
+      this.ringSound.currentTime = 0;
     }
   }
 
-  initWebSocket() {
-    var backendHostname = this.props.backendHostname;
 
-    this.webSocket = new WebSocket(
-      "wss://" + backendHostname + "/websocket/outboundDial",
-      Manager.getInstance().user.token
-    );
-
-    this.webSocket.onerror = function() {
-      console.error("Connection Error");
-      Notifications.showNotification("WebsocketError", {
-        url: backendHostname
-      });
-    };
-
-    this.webSocket.onopen = function() {
-      this.setState({ websocketStatus: "open" });
-    }.bind(this);
-
-    this.webSocket.onclose = function() {
-      this.setState({ websocketStatus: "closed" });
-    }.bind(this);
-
-    this.webSocket.onmessage = message => this.handleWebSocketMessage(message);
+  initSyncDoc() {
+    // init sync doc on component mount
+    this.syncClient
+      .document(this.syncDocName)
+      .then(doc => {
+        this.updateStateFromSyncDoc(doc.value);
+        doc.on("updated", updatedDoc => {
+          this.updateStateFromSyncDoc(updatedDoc.value)
+        })
+      })
   }
 
-  handleWebSocketMessage(message) {
-    console.debug("Event recieved: ", message.data);
 
-    try {
-      var data = JSON.parse(message.data);
-      if (data.messageType === "callUpdate") {
-        this.props.setCallFunction(data);
-
-        if (data.callStatus === "ringing") {
-          this.ringSound.play();
-        } else if (data.callStatus === "in-progress") {
-          this.ringSound.pause();
-          this.ringSound.currentTime = 0;
-          takeOutboundCall();
-          this.props.closeViewFunction();
-        } else if (
-          data.callStatus === "completed" ||
-          data.callStatus === "canceled"
-        ) {
-          this.ringSound.pause();
-          this.ringSound.currentTime = 0;
-          //TODO add notification caller hungup
-        }
-      } else if (data.messageType === "error") {
-        Notifications.showNotification("BackendError", {
-          message: data.message
-        });
-        this.props.setCallFunction({ callSid: "", callStatus: "" });
-      }
-    } catch (error) {
-      console.warn("Unrecognized payload: ", message.data);
-    }
-  }
 
   componentDidMount() {
-    console.log("Mounting Dialpad");
-    this.initWebSocket();
+    this.initSyncDoc();
 
     document.addEventListener("keydown", this.eventkeydownListener, false);
     document.addEventListener("keyup", this.eventListener, false);
@@ -393,17 +365,76 @@ export class DialPad extends React.Component {
 
   componentWillUnmount() {
     console.log("Unmounting Dialpad");
-    this.webSocket.close();
+    //this.syncClient = null;
+
     document.removeEventListener("keydown", this.eventkeydownListener, false);
     document.removeEventListener("keyup", this.eventListener, false);
     document.removeEventListener("paste", this.pasteListener, false);
-    this.ringSound = null;
-    this.props.setCallFunction({ callSid: "", callStatus: "" });
+    //this.ringSound = null;
+    //this.props.setCallFunction({ callSid: "", callStatus: "" });
+  }
+
+  makeDialFunctionCall = (to) => {
+    let from;
+    if (this.state.phoneNumber) {
+      from = this.state.phoneNumber
+    } else {
+      from = DEFAULT_FROM_NUMBER;
+    }
+
+    return new Promise((resolve, reject) => {
+
+      fetch(`https://${FUNCTIONS_HOSTNAME}/outbound-dialing/makeCall`, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        method: 'POST',
+        body: (
+          `token=${this.token}`
+          + `&To=${to}`
+          + `&From=${from}`
+          + `&workerContactUri=${this.props.workerContactUri}`
+          + `&functionsDomain=${FUNCTIONS_HOSTNAME}`
+        )
+      })
+        .then(response => {
+          console.log(`called ${to}`);
+          resolve(response);
+        })
+        .catch(error => {
+          console.error(`error making call`, error);
+          reject(error);
+        });
+    });
+  }
+
+  makeHangupFunctionCall = (CallSid) => {
+    console.log("JARED, IM CALLING THE FUNCTION");
+    return new Promise((resolve, reject) => {
+
+      fetch(`https://${FUNCTIONS_HOSTNAME}/outbound-dialing/endCall`, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        method: 'POST',
+        body: (
+          `token=${this.token}`
+          + `&CallSid=${CallSid}`
+        )
+      })
+        .then(response => {
+          console.log(`called terminated ${CallSid}`);
+          resolve(response);
+        })
+        .catch(error => {
+          console.error(`error making call`, error);
+          reject(error);
+        });
+    });
   }
 
   dial(number) {
     if (
-      this.state.websocketStatus === "open" &&
       this.state.number !== "" &&
       this.props.call.callStatus !== "dialing"
     ) {
@@ -414,15 +445,8 @@ export class DialPad extends React.Component {
       })
         .then(() => {
           if (!this.props.available) {
-            this.webSocket.send(
-              JSON.stringify({
-                method: "call",
-                to: number,
-                from: this.props.fromNumber,
-                workerContactUri: this.props.workerContactUri
-              })
-            );
-            this.props.setCallFunction({ callSid: "", callStatus: "dialing" });
+            this.makeDialFunctionCall(this.state.number);
+            this.props.setCallFunction({ callSid: "", callStatus: "dialing" })
           }
         })
         .catch(error => {
@@ -432,18 +456,8 @@ export class DialPad extends React.Component {
           })
             .then(() => {
               if (!this.props.available) {
-                this.webSocket.send(
-                  JSON.stringify({
-                    method: "call",
-                    to: number,
-                    from: this.props.fromNumber,
-                    workerContactUri: this.props.workerContactUri
-                  })
-                );
-                this.props.setCallFunction({
-                  callSid: "",
-                  callStatus: "dialing"
-                });
+                this.makeDialFunctionCall(this.state.number);
+                this.props.setCallFunction({ callSid: "", callStatus: "dialing" })
               }
             })
             .catch(error => {
@@ -452,23 +466,17 @@ export class DialPad extends React.Component {
               );
             });
         });
-    } else {
-      console.log("Websocket not ready");
     }
   }
 
   hangup(callSid) {
-    console.debug("Hanging up call: ", callSid);
+    console.debug("JARED IM Hanging up call: ", callSid);
 
     // only hangup if call is actually ringing
     // if hangup occurs while queued, twilio fails to handle future hang up requests
     if (this.props.call.callStatus === "ringing") {
-      this.webSocket.send(
-        JSON.stringify({
-          method: "hangup",
-          callSid: callSid
-        })
-      );
+
+      this.makeHangupFunctionCall(callSid);
 
       // TODO: Make this more sophisticated form of activity state management
       Actions.invokeAction("SetActivity", {
@@ -592,6 +600,7 @@ export class DialPad extends React.Component {
 
 const mapStateToProps = state => {
   return {
+    phoneNumber: state.flex.worker.attributes.phone,
     workerContactUri: state.flex.worker.attributes.contact_uri,
     activeCall:
       typeof state.flex.phone.connection === "undefined"

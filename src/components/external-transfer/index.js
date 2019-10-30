@@ -7,7 +7,7 @@ import ConferenceButton from './ConferenceButton';
 import ConferenceDialog from './ConferenceDialog';
 import ConferenceMonitor from './ConferenceMonitor';
 
-export function loadExternalTransferInterface(flex, manager, props) {
+export function loadExternalTransferInterface(flex, manager) {
 
 	flex.CallCanvasActions.Content.add(<ConferenceButton
 		key="conference"

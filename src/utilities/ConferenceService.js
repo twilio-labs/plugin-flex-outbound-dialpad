@@ -4,14 +4,11 @@
   https://github.com/trogers-twilio/plugin-external-conference-warm-transfer
 
 */
-
 import { ConferenceParticipant, Manager } from '@twilio/flex-ui';
+import { FUNCTIONS_HOSTNAME } from "../OutboundDialingWithConferencePlugin";
 
 
 class ConferenceService {
-  constructor() {
-    this.FUNCTIONS_HOSTNAME = 'jared-dev1.ngrok.io';
-  }
 
   // Private functions
   _getUserToken = () => {
@@ -23,7 +20,7 @@ class ConferenceService {
     return new Promise((resolve, reject) => {
       const token = this._getUserToken();
 
-      return fetch(`https://${this.FUNCTIONS_HOSTNAME}/external-transfer/hold-conference-participant`, {
+      return fetch(`https://${FUNCTIONS_HOSTNAME}/external-transfer/hold-conference-participant`, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded'
         },
@@ -51,7 +48,7 @@ class ConferenceService {
     return new Promise((resolve, reject) => {
       const token = this._getUserToken();
 
-      fetch(`https://${this.FUNCTIONS_HOSTNAME}/external-transfer/update-conference-participant`, {
+      fetch(`https://${FUNCTIONS_HOSTNAME}/external-transfer/update-conference-participant`, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded'
         },
@@ -78,10 +75,11 @@ class ConferenceService {
   }
 
   addParticipant = (taskSid, from, to) => {
+    console.log("FUNCTIONS_HOSTNAME: ", FUNCTIONS_HOSTNAME);
     return new Promise((resolve, reject) => {
       const token = this._getUserToken();
 
-      fetch(`https://${this.FUNCTIONS_HOSTNAME}/external-transfer/add-conference-participant`, {
+      fetch(`https://${FUNCTIONS_HOSTNAME}/external-transfer/add-conference-participant`, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded'
         },
@@ -144,7 +142,7 @@ class ConferenceService {
     return new Promise((resolve, reject) => {
       const token = this._getUserToken();
 
-      fetch(`https://${this.FUNCTIONS_HOSTNAME}/external-transfer/remove-conference-participant`, {
+      fetch(`https://${FUNCTIONS_HOSTNAME}/external-transfer/remove-conference-participant`, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded'
         },
@@ -182,11 +180,11 @@ export function toggleHold(payload, original, hold) {
 
   if (hold) {
     console.log('Holding participant', participantSid);
-    return ConferenceService.holdParticipant(conference, participantSid);
+    return conferenceService.holdParticipant(conference, participantSid);
   }
 
   console.log('Unholding participant', participantSid);
-  return ConferenceService.unholdParticipant(conference, participantSid);
+  return conferenceService.unholdParticipant(conference, participantSid);
 };
 
 export default conferenceService;

@@ -1,22 +1,31 @@
 import { FlexPlugin } from "flex-plugin";
-import React from "react";
-import DialPadLauncher from "./components/dialpad/DialPadLauncher";
+import { SyncClient } from "twilio-sync";
+import { Manager } from "@twilio/flex-ui";
+
+//independent features
+import { loadDialPadInterface } from "./components/dialpad"
 import { loadExternalTransferInterface } from "./components/external-transfer"
 
+// common libraries
 import { registerReservationCreatedExtensions } from "./eventListeners/workerClient/reservationCreated";
-
 import { registerActionExtensions } from "./eventListeners/actionsFramework"
 
 import "./notifications/CustomNotifications";
 
 const PLUGIN_NAME = "OutboundDialingWithConferencePlugin";
 
+export const FUNCTIONS_HOSTNAME = 'jared-dev1.ngrok.io';
+export const DEFAULT_FROM_NUMBER = "+12565769948"; // twilio account or verified number
+export const SYNC_CLIENT = new SyncClient(Manager.getInstance().user.token);
+
 export default class OutboundDialingWithConferencePlugin extends FlexPlugin {
+
+
   constructor() {
     super(PLUGIN_NAME);
-    this.backendHostname = "backend-hostname.com";
-    this.fromNumber = "+11234567890"; // twilio account or verified number
+
   }
+
 
   /**
    * This code is run when your plugin is being started
@@ -26,16 +35,9 @@ export default class OutboundDialingWithConferencePlugin extends FlexPlugin {
    * @param manager { import('@twilio/flex-ui').Manager }
    */
   init(flex, manager) {
-    // Add Dialpad
-    flex.SideNav.Content.add(
-      <DialPadLauncher
-        key="sidebardialerbutton"
-        backendHostname={this.backendHostname}
-        fromNumber={this.fromNumber}
-      />
-    );
-
-    loadExternalTransferInterface(flex, manager, this.props)
+    // Add custom extensions
+    loadDialPadInterface.bind(this)(flex, manager);
+    loadExternalTransferInterface.bind(this)(flex, manager)
     registerReservationCreatedExtensions(manager);
     registerActionExtensions();
   }
