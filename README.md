@@ -26,6 +26,7 @@ Before using this plugin you must first create a dedicated TaskRouter workflow f
 You will need the [twilio CLI](https://www.twilio.com/docs/twilio-cli/quickstart) and the [serverless plugin](https://www.twilio.com/docs/labs/serverless-toolkit/getting-started) to deploy the functions you can install with the following commands
 
 `npm install twilio-cli -g`
+and
 `twilio plugins:install @twilio-labs/plugin-serverless`
 
 
