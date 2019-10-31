@@ -409,7 +409,6 @@ export class DialPad extends React.Component {
   }
 
   makeHangupFunctionCall = (CallSid) => {
-    console.log("JARED, IM CALLING THE FUNCTION");
     return new Promise((resolve, reject) => {
 
       fetch(`https://${FUNCTIONS_HOSTNAME}/outbound-dialing/endCall`, {
