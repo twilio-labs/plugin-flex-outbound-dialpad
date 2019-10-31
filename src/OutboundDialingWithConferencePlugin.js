@@ -14,8 +14,8 @@ import "./notifications/CustomNotifications";
 
 const PLUGIN_NAME = "OutboundDialingWithConferencePlugin";
 
-export const FUNCTIONS_HOSTNAME = 'dialpad-functions-4229-dev.twil.io';
-export const DEFAULT_FROM_NUMBER = "+12565769948"; // twilio account or verified number
+export const FUNCTIONS_HOSTNAME = '';
+export const DEFAULT_FROM_NUMBER = ""; // twilio account or verified number
 export const SYNC_CLIENT = new SyncClient(Manager.getInstance().user.token);
 
 export default class OutboundDialingWithConferencePlugin extends FlexPlugin {
