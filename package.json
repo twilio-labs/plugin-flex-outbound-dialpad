@@ -1,7 +1,7 @@
 {
   "name": "plugin-outbound-dialing-with-conference",
-  "description": "Example front end implementation of a dialpad that creates outbound calls via a websocket to a backend service",
-  "version": "1.1.0",
+  "description": "Example front end implementation of a dialpad that creates outbound calls via a voice sdk and sends call to worker via task router",
+  "version": "1.2.0",
   "author": "Jared Hunter <jhunter@twilio.com>",
   "private": true,
   "scripts": {

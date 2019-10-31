@@ -2,7 +2,7 @@ import { Actions } from "@twilio/flex-ui";
 
 var IsOutbound = false;
 
-export function registerReservationCreatedHandler(manager) {
+export function registerReservationCreatedExtensions(manager) {
   manager.workerClient.on("reservationCreated", handleReservationTask);
 }
 

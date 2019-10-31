@@ -43,6 +43,8 @@ class DialPadDialog extends React.Component {
   render() {
     const { classes, onClose, selectedValue, ...other } = this.props;
 
+    //window.onbeforeunload = function () { return false; }
+
     return (
       <StyledDialog
         disableBackdropClick
@@ -64,8 +66,6 @@ class DialPadDialog extends React.Component {
         <DialPad
           key="dialpadModal"
           call={this.state.call}
-          backendHostname={this.props.backendHostname}
-          fromNumber={this.props.fromNumber}
           setCallFunction={this.setCall}
           closeViewFunction={this.handleClose}
         />
@@ -121,8 +121,6 @@ export default class DialPadLauncher extends React.Component {
           selectedValue={this.state.selectedValue}
           open={this.state.open}
           onClose={this.handleClose}
-          backendHostname={this.props.backendHostname}
-          fromNumber={this.props.fromNumber}
         />
       </div>
     );

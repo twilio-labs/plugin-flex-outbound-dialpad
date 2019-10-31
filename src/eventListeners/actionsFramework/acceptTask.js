@@ -1,6 +1,7 @@
 import { Actions } from "@twilio/flex-ui";
 
-export function registerAcceptTaskOverrides() {
+export function registerAcceptTaskExtensions() {
+
   Actions.replaceAction("AcceptTask", (payload, original) => {
     console.log("ACCEPT TASK: ", payload);
     const task = payload.task;
