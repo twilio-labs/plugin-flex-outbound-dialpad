@@ -24,14 +24,14 @@ function makeOutboundCall(context, event) {
 	const client = context.getTwilioClient();
 
 	return new Promise(function (resolve, reject) {
-		var callHandlerCallbackURL = encodeURI(
+		const callHandlerCallbackURL = encodeURI(
 			"https://" +
 			event.functionsDomain +
 			"/outbound-dialing/callHandlerTwiml?workerContactUri=" +
 			event.workerContactUri
 		);
 
-		var statusCallbackURL = encodeURI(
+		const statusCallbackURL = encodeURI(
 			"https://" +
 			event.functionsDomain +
 			"/outbound-dialing/callStatusUpdateHandler?workerSyncDoc=" +
@@ -48,15 +48,15 @@ function makeOutboundCall(context, event) {
 				statusCallbackEvent: ["ringing", "answered", "completed"]
 			})
 			.then(call => {
-				console.debug("call created: ", call.sid);
-				console.debug("\tto:\t", call.to);
-				console.debug("\tfrom:\t", call.from);
-				console.debug("\tstatus:\t", call.status.toString());
+				console.log("call created: ", call.sid);
+				console.log("\tto:\t", call.to);
+				console.log("\tfrom:\t", call.from);
+				console.log("\tstatus:\t", call.status.toString());
 				resolve({ success: true, call: call });
 			})
 			.catch(error => {
-				console.error("call creation failed");
-				console.error("\tERROR: ", error.message);
+				console.log("call creation failed");
+				console.log("\tERROR: ", error.message);
 				resolve({ success: false, error: error });
 			});
 	});
@@ -64,11 +64,11 @@ function makeOutboundCall(context, event) {
 
 exports.handler = async function (context, event, callback) {
 
-	console.debug("makeCall for:");
-	console.debug("\tto:", event.To);
-	console.debug("\tfrom:", event.From);
-	console.debug("\tworkerContactUri:", event.workerContactUri);
-	console.debug("\tcallbackDomain:", event.functionsDomain);
+	console.log("makeCall for:");
+	console.log("\tto:", event.To);
+	console.log("\tfrom:", event.From);
+	console.log("\tworkerContactUri:", event.workerContactUri);
+	console.log("\tcallbackDomain:", event.functionsDomain);
 
 	const response = new Twilio.Response();
 
