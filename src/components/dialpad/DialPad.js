@@ -376,8 +376,8 @@ export class DialPad extends React.Component {
 
   makeDialFunctionCall = (to) => {
     let from;
-    if (this.state.phoneNumber) {
-      from = this.state.phoneNumber
+    if (this.props.phoneNumber) {
+      from = this.props.phoneNumber
     } else {
       from = DEFAULT_FROM_NUMBER;
     }
