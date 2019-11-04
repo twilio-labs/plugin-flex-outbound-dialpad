@@ -1,9 +1,9 @@
 exports.handler = async function (context, event, callback) {
 
-	console.debug("callhandler for: ", event.CallSid);
-	console.debug("\tworker:\t", event.workerContactUri);
-	console.debug("\tto:\t", event.To);
-	console.debug("\tworkflowSid:\t", context.TWILIO_WORKFLOW_SID);
+	console.log("callhandler for: ", event.CallSid);
+	console.log("\tworker:\t", event.workerContactUri);
+	console.log("\tto:\t", event.To);
+	console.log("\tworkflowSid:\t", context.TWILIO_WORKFLOW_SID);
 
 	var taskAttributes = {
 		targetWorker: event.workerContactUri,

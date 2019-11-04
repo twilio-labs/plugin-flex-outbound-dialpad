@@ -28,15 +28,15 @@ function hangupCall(context, event) {
 			.calls(event.CallSid)
 			.update({ status: "completed" })
 			.then(call => {
-				console.debug("terminated call: ", call.sid);
-				console.debug("\tto: ", call.to);
-				console.debug("\tfrom: ", call.from);
-				console.debug("\tstatus: ", call.status.toString());
+				console.log("terminated call: ", call.sid);
+				console.log("\tto: ", call.to);
+				console.log("\tfrom: ", call.from);
+				console.log("\tstatus: ", call.status.toString());
 				resolve({ success: true, call: call });
 			})
 			.catch(error => {
-				console.error("Failed to terminate call: ", data.callSid);
-				console.error("\tERROR: ", error);
+				console.log("Failed to terminate call: ", data.callSid);
+				console.log("\tERROR: ", error);
 
 				resolve({ success: false, error: error });
 			});
@@ -45,7 +45,7 @@ function hangupCall(context, event) {
 
 exports.handler = async function (context, event, callback) {
 
-	console.debug("endCall for: ", event.CallSid);
+	console.log("endCall for: ", event.CallSid);
 
 	const response = new Twilio.Response();
 
