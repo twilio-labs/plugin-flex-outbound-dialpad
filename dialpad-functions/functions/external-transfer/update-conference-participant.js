@@ -27,9 +27,11 @@ exports.handler = async function (context, event, callback) {
   response.appendHeader('Content-Type', 'application/json');
   response.appendHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  console.log('Event properties:');
+  console.log('update-conference-participant parameters:');
   Object.keys(event).forEach(key => {
-    console.log(`${key}: ${event[key]}`);
+    if (key !== "token") {
+      console.log(`${key}: ${event[key]}`);
+    }
   });
 
   if (Object.keys(event).length === 0) {
