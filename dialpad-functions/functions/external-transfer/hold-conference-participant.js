@@ -27,9 +27,11 @@ exports.handler = async function (context, event, callback) {
   response.appendHeader('Content-Type', 'application/json');
   response.appendHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  console.log('Event properties:');
+  console.log('hold-conference-participant parameters:');
   Object.keys(event).forEach(key => {
-    console.log(`${key}: ${event[key]}`);
+    if (key !== "token") {
+      console.log(`${key}: ${event[key]}`);
+    }
   });
 
   if (Object.keys(event).length === 0) {
@@ -64,15 +66,19 @@ exports.handler = async function (context, event, callback) {
     .update({
       hold,
     });
-  console.log(`Participant ${participant} updated in conference \
-    ${conference}. Participant response properties:`);
-  Object.keys(participantsResponse).forEach(key => {
-    console.log(`  ${key}:`, participantsResponse[key]);
-  });
+
+
   response.setBody({
     ...participantsResponse,
     status: 200,
     _version: undefined
+  });
+
+  console.log(`Participant ${participant} updated in conference \
+  ${conference}. Participant response properties:`);
+
+  Object.keys(response.body).forEach(key => {
+    console.log(`  ${key}:`, response.body[key]);
   });
 
   return callback(null, response);

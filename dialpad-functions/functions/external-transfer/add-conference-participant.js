@@ -27,9 +27,11 @@ exports.handler = async function (context, event, callback) {
   response.appendHeader('Content-Type', 'application/json');
   response.appendHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  console.log('Event properties:');
+  console.log('add-conference-participant parameters:');
   Object.keys(event).forEach(key => {
-    console.log(`${key}: ${event[key]}`);
+    if (key !== "token") {
+      console.log(`${key}: ${event[key]}`);
+    }
   });
 
   if (Object.keys(event).length === 0) {
@@ -44,8 +46,7 @@ exports.handler = async function (context, event, callback) {
     from
   } = event;
 
-  console.log('Validating request token');
-  const tokenResponse = await getAuthentication(event.token, context);
+  const tokenResponse = await getAuthentication(token, context);
   if (!tokenResponse.valid) {
     response.setStatusCode(401);
     response.setBody({

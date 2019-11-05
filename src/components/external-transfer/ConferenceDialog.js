@@ -9,6 +9,8 @@ import DialogContentText from '@material-ui/core/DialogContentText';
 import TextField from '@material-ui/core/TextField';
 import ConferenceService from '../../utilities/ConferenceService';
 
+import { DEFAULT_FROM_NUMBER } from "../../OutboundDialingWithConferencePlugin"
+
 class ConferenceDialog extends React.Component {
   state = {
     conferenceTo: ''
@@ -46,9 +48,16 @@ class ConferenceDialog extends React.Component {
 
   addConferenceParticipant = async () => {
     const to = this.state.conferenceTo;
-    const { from, task, task: { taskSid } } = this.props;
+    const { task, task: { taskSid } } = this.props;
     const conference = task && (task.conference || {});
     const { conferenceSid } = conference;
+
+    let from;
+    if (this.props.phoneNumber) {
+      from = this.props.phoneNumber
+    } else {
+      from = DEFAULT_FROM_NUMBER;
+    }
 
     // Adding entered number to the conference
     console.log(`Adding ${to} to conference`);
@@ -107,7 +116,8 @@ const mapStateToProps = state => {
   const conferenceDialogState = componentViewStates && componentViewStates.ConferenceDialog;
   const isOpen = conferenceDialogState && conferenceDialogState.isOpen;
   return {
-    isOpen
+    isOpen,
+    phoneNumber: state.flex.worker.attributes.phone
   };
 };
 

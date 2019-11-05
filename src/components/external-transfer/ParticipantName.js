@@ -2,6 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import styled from 'react-emotion';
 import { Manager, withTheme } from '@twilio/flex-ui';
+import { FUNCTIONS_HOSTNAME } from "../../OutboundDialingWithConferencePlugin";
 
 const Name = styled('div')`
   font-size: 14px;
@@ -27,7 +28,7 @@ class ParticipantName extends React.Component {
   };
 
   componentDidMount() {
-    const { participant, serviceBaseUrl, task } = this.props;
+    const { participant, task } = this.props;
     const { callSid } = participant;
 
     if (participant.participantType === 'customer') {
@@ -39,10 +40,18 @@ class ParticipantName extends React.Component {
     const token = manager.user.token;
 
     const getCallPropertiesUrl = (
-      `https://${serviceBaseUrl}/get-call-properties?token=${token}&callSid=${callSid}`
+      `https://${FUNCTIONS_HOSTNAME}/external-transfer/get-call-properties`
     );
-    fetch(getCallPropertiesUrl)
-      .then(response => response.json())
+    fetch(getCallPropertiesUrl, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      method: 'POST',
+      body: (
+        `token=${token}`
+        + `&callSid=${callSid}`
+      )
+    }).then(response => response.json())
       .then(json => {
         if (json) {
           const name = (json && json.to) || '';
