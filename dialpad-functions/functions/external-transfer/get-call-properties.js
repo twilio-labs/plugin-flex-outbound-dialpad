@@ -1,5 +1,25 @@
 const nodeFetch = require('node-fetch');
 
+async function getAuthentication(token, context) {
+
+  console.log('Validating request token');
+
+  const tokenValidationApi = `https://${context.ACCOUNT_SID}:${context.AUTH_TOKEN}@iam.twilio.com/v1/Accounts/${context.ACCOUNT_SID}/Tokens/validate`;
+
+  const fetchResponse = await nodeFetch(tokenValidationApi, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      token
+    })
+  });
+
+  const tokenResponse = await fetchResponse.json();
+  return tokenResponse;
+}
+
 
 exports.handler = async function (context, event, callback) {
   const response = new Twilio.Response();
@@ -8,9 +28,11 @@ exports.handler = async function (context, event, callback) {
   response.appendHeader('Content-Type', 'application/json');
   response.appendHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  console.log('Event properties:');
+  console.log('get-call-properties parameters:');
   Object.keys(event).forEach(key => {
-    console.log(`${key}: ${event[key]}`);
+    if (key !== "token") {
+      console.log(`${key}: ${event[key]}`);
+    }
   });
 
   if (Object.keys(event).length === 0) {
