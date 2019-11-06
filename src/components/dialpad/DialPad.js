@@ -352,11 +352,26 @@ export class DialPad extends React.Component {
     })
   }
 
+  checkNoVoiceTasksOpen() {
+    const { tasks } = this.props;
+
+    var response = true;
+    tasks.forEach(value => {
+      console.log(value);
+      if (value.channelType === "voice") {
+        response = false;
+      }
+    })
+
+    return response;
+  };
+
   dial() {
     console.log("ATTEMPTING TO DIAL");
     console.log("Number: ", this.props.number);
     console.log("callStatus: ", this.props.call.callStatus);
     if (
+      this.checkNoVoiceTasksOpen() &&
       this.props.number !== "" &&
       (!this.props.call || this.props.call.callStatus === "" || this.props.call.callStatus === "completed" || this.props.call.callStatus === "canceled") &&
       this.props.activeCall === ""
@@ -587,6 +602,7 @@ export class DialPad extends React.Component {
 
 const mapStateToProps = state => {
   return {
+    tasks: state.flex.worker.tasks,
     phoneNumber: state.flex.worker.attributes.phone,
     workerContactUri: state.flex.worker.attributes.contact_uri,
     activeCall:
