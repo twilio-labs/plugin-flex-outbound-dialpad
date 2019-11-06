@@ -1,5 +1,5 @@
 import React from "react";
-import { Actions, Manager } from "@twilio/flex-ui";
+import { Actions, Manager, Notifications } from "@twilio/flex-ui";
 import {
   withStyles,
   MuiThemeProvider,
@@ -119,8 +119,8 @@ export class DialPad extends React.Component {
       number: ""
     };
 
+
     this.token = Manager.getInstance().user.token;
-    this.syncClient = SYNC_CLIENT;
     this.syncDocName = `${this.props.workerContactUri}.outbound-call`;
 
     //audio credit https://freesound.org/people/AnthonyRamirez/sounds/455413/
@@ -329,6 +329,11 @@ export class DialPad extends React.Component {
     } else if (docObject.callStatus === "in-progress") {
       this.ringSound.pause();
       this.ringSound.currentTime = 0;
+      SYNC_CLIENT
+        .document(this.syncDocName)
+        .then(doc => {
+          doc.update({ callSid: "", callStatus: "completed" });
+        })
       takeOutboundCall();
       this.props.closeViewFunction();
     } else if (
@@ -343,7 +348,7 @@ export class DialPad extends React.Component {
 
   initSyncDoc() {
     // init sync doc on component mount
-    this.syncClient
+    SYNC_CLIENT
       .document(this.syncDocName)
       .then(doc => {
         this.updateStateFromSyncDoc(doc.value);
@@ -352,8 +357,6 @@ export class DialPad extends React.Component {
         })
       })
   }
-
-
 
   componentDidMount() {
     this.initSyncDoc();
@@ -374,62 +377,31 @@ export class DialPad extends React.Component {
     //this.props.setCallFunction({ callSid: "", callStatus: "" });
   }
 
-  makeDialFunctionCall = (to) => {
-    let from;
-    if (this.props.phoneNumber) {
-      from = this.props.phoneNumber
-    } else {
-      from = DEFAULT_FROM_NUMBER;
-    }
-
+  setAgentUnavailable() {
     return new Promise((resolve, reject) => {
 
-      fetch(`https://${FUNCTIONS_HOSTNAME}/outbound-dialing/makeCall`, {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        method: 'POST',
-        body: (
-          `token=${this.token}`
-          + `&To=${to}`
-          + `&From=${from}`
-          + `&workerContactUri=${this.props.workerContactUri}`
-          + `&functionsDomain=${FUNCTIONS_HOSTNAME}`
-        )
+      Actions.invokeAction("SetActivity", {
+        activityName: "Busy"
       })
-        .then(response => {
-          console.log(`called ${to}`);
-          resolve(response);
+        .then(() => {
+          resolve();
         })
         .catch(error => {
-          console.error(`error making call`, error);
-          reject(error);
+          Actions.invokeAction("SetActivity", {
+            activityName: "Offline"
+          })
+            .then(() => {
+              resolve();
+            })
+            .catch(() => {
+              Notifications.showNotification("ActivityStateUnavailable", {
+                state1: "Busy",
+                state2: "Offline"
+              });
+              reject();
+            });
         });
-    });
-  }
-
-  makeHangupFunctionCall = (CallSid) => {
-    return new Promise((resolve, reject) => {
-
-      fetch(`https://${FUNCTIONS_HOSTNAME}/outbound-dialing/endCall`, {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        method: 'POST',
-        body: (
-          `token=${this.token}`
-          + `&CallSid=${CallSid}`
-        )
-      })
-        .then(response => {
-          console.log(`called terminated ${CallSid}`);
-          resolve(response);
-        })
-        .catch(error => {
-          console.error(`error making call`, error);
-          reject(error);
-        });
-    });
+    })
   }
 
   dial(number) {
@@ -438,61 +410,126 @@ export class DialPad extends React.Component {
       this.props.call.callStatus !== "dialing"
     ) {
       console.log("Calling: ", number);
-
-      Actions.invokeAction("SetActivity", {
-        activityName: "Busy"
-      })
-        .then(() => {
-          if (!this.props.available) {
-            this.makeDialFunctionCall(this.state.number);
-            this.props.setCallFunction({ callSid: "", callStatus: "dialing" })
-          }
-        })
-        .catch(error => {
-          console.error("Couldnt switch to 'Busy' so trying 'Offline'");
-          Actions.invokeAction("SetActivity", {
-            activityName: "Offline"
-          })
-            .then(() => {
-              if (!this.props.available) {
-                this.makeDialFunctionCall(this.state.number);
-                this.props.setCallFunction({ callSid: "", callStatus: "dialing" })
-              }
-            })
-            .catch(error => {
-              console.error(
-                "Attempted to auto switch to inactive state but activity doesnt exist, try remapping"
-              );
-            });
-        });
+      this.setAgentUnavailable()
+        .then(() => this.orchestrateMakeCall())
+        .catch();
     }
   }
 
-  hangup(callSid) {
-    console.debug("JARED IM Hanging up call: ", callSid);
-
-    // only hangup if call is actually ringing
-    // if hangup occurs while queued, twilio fails to handle future hang up requests
-    if (this.props.call.callStatus === "ringing") {
-
-      this.makeHangupFunctionCall(callSid);
-
-      // TODO: Make this more sophisticated form of activity state management
-      Actions.invokeAction("SetActivity", {
-        activityName: "Idle"
-      }).catch(error => {
-        console.error(
-          "Attempted to go idle but activity not available, trying 'Available'"
-        );
-        Actions.invokeAction("SetActivity", {
-          activityName: "Available"
-        }).catch(error => {
-          console.error(
-            "Attempted to auto switch to Idle state but activity doesnt exist, try remapping which state to auto switch to"
-          );
-        });
-      });
+  orchestrateMakeCall() {
+    if (!this.props.available) {
+      this.props.setCallFunction({ callSid: "", callStatus: "dialing" })
+      this.makeDialFunctionCall(this.state.number)
+        .then(response => {
+          if (response.error) {
+            this.props.setCallFunction({ callSid: "", callStatus: "" });
+            Notifications.showNotification("BackendError", {
+              message: response.error.message
+            });
+          }
+        })
+        .catch(error => {
+          this.props.setCallFunction({ callSid: "", callStatus: "" })
+          Notifications.showNotification("BackendError", {
+            message: error.error.message
+          });
+        })
     }
+  }
+
+  makeDialFunctionCall(to) {
+
+    const from = this.props.phoneNumber ? this.props.phoneNumber : DEFAULT_FROM_NUMBER;
+
+    const makeCallURL = `https://${FUNCTIONS_HOSTNAME}/outbound-dialing/makeCall`
+    const headers = {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    }
+    const body = (
+      `token=${this.token}`
+      + `&To=${to}`
+      + `&From=${from}`
+      + `&workerContactUri=${this.props.workerContactUri}`
+      + `&functionsDomain=${FUNCTIONS_HOSTNAME}`
+    )
+
+    return new Promise((resolve, reject) => {
+
+      fetch(makeCallURL, {
+        headers,
+        method: 'POST',
+        body
+      })
+        .then(response => response.json())
+        .then(json => {
+          resolve(json);
+        })
+        .catch(x => {
+          x = (x == "TypeError: Failed to fetch") ? "Backend not available" : x
+          resolve({ error: { message: x } })
+        })
+
+    })
+  }
+
+  hangup(callSid) {
+    // if hangup occurs while queued, twilio fails and fails
+    // to handle future hang up requests
+    if (this.props.call.callStatus !== "queued") {
+
+      this.makeHangupFunctionCall(callSid)
+        .then(response => {
+          if (response.error) {
+            Notifications.showNotification("BackendError", {
+              message: response.error.message
+            });
+          }
+          if (response.call && (response.call.status === "completed" || response.call.status === "cancelled")) {
+            // in case of emergency, if hangup operation is successfull
+            // this ensures sync map is updated to allow for more calls
+            SYNC_CLIENT
+              .document(this.syncDocName)
+              .then(doc => {
+                doc.update({ callSid: "", callStatus: "completed" });
+              })
+            this.ringSound.pause();
+          }
+        })
+        .catch(error => {
+          Notifications.showNotification("BackendError", {
+            message: error
+          });
+        })
+    }
+  }
+
+  makeHangupFunctionCall = (CallSid) => {
+
+    const endCallURL = `https://${FUNCTIONS_HOSTNAME}/outbound-dialing/endCall`
+    const headers = {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    }
+    const body = (
+      `token=${this.token}`
+      + `&CallSid=${CallSid}`
+    )
+
+    return new Promise((resolve, reject) => {
+
+      fetch(endCallURL, {
+        headers,
+        method: 'POST',
+        body
+      })
+        .then(response => response.json())
+        .then(json => {
+          resolve(json);
+        })
+        .catch(x => {
+          x = (x == "TypeError: Failed to fetch") ? "Backend not available" : x
+          resolve({ error: { message: x } })
+        })
+    })
   }
 
   eventListener = e => this.keyPressListener(e);

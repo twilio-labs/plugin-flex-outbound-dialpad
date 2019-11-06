@@ -1,4 +1,4 @@
-import { Actions } from "@twilio/flex-ui";
+import { Actions, Notifications } from "@twilio/flex-ui";
 
 var IsOutbound = false;
 
@@ -9,19 +9,25 @@ export function registerReservationCreatedExtensions(manager) {
 export function takeOutboundCall() {
   IsOutbound = true;
 
-  Actions.invokeAction("SetActivity", {
-    activityName: "Idle"
-  }).catch(error => {
-    console.error(
-      "Attempted to go idle but activity not available, trying 'Available'"
-    );
+  return new Promise((resolve, reject) => {
     Actions.invokeAction("SetActivity", {
-      activityName: "Available"
-    }).catch(error => {
-      console.error(
-        "Attempted to auto switch to Idle state but activity doesnt exist, try remapping which state to auto switch to"
-      );
-    });
+      activityName: "Idle"
+    })
+      .then(() => {
+        resolve()
+      })
+      .catch(() => {
+        Actions.invokeAction("SetActivity", {
+          activityName: "Available"
+        })
+          .then(() => resolve())
+          .catch(() => {
+            Notifications.showNotification("ActivityStateUnavailable", {
+              state1: "Idle",
+              state2: "Available"
+            });
+          });
+      });
   });
 }
 

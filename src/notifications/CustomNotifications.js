@@ -22,3 +22,13 @@ if (!manager.strings.backendError) {
     type: NotificationType.error
   });
 }
+
+if (!manager.strings.activityStateUnavailable) {
+  manager.strings.activityStateUnavailable = "Tried to switch to programmed Activity State but State {{state1}} or {{state2}} arent unavailable";
+
+  Notifications.registerNotification({
+    id: "ActivityStateUnavailable",
+    content: "activityStateUnavailable",
+    type: NotificationType.error
+  });
+}

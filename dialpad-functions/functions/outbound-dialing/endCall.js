@@ -29,16 +29,11 @@ function hangupCall(context, event) {
 			.update({ status: "completed" })
 			.then(call => {
 				console.log("terminated call: ", call.sid);
-				console.log("\tto: ", call.to);
-				console.log("\tfrom: ", call.from);
-				console.log("\tstatus: ", call.status.toString());
-				resolve({ success: true, call: call });
+				resolve({ call, error: null });
 			})
 			.catch(error => {
 				console.log("Failed to terminate call: ", data.callSid);
-				console.log("\tERROR: ", error);
-
-				resolve({ success: false, error: error });
+				resolve({ call: null, error });
 			});
 	});
 }
@@ -57,18 +52,18 @@ exports.handler = async function (context, event, callback) {
 	const tokenResponse = await getAuthentication(event.token, context);
 	if (tokenResponse.valid) {
 		const hangupCallResult = await hangupCall(context, event)
-		if (!hangupCallResult.success) {
-			response.setStatusCode(500)
+		if (hangupCallResult.error) {
+			response.setStatusCode(hangupCallResult.error.status)
 		}
-		response.setBody(hangupCallResult)
-		callback(null, response);
+		response.setBody(hangupCallResult);
 	} else {
 		response.setStatusCode(401);
 		response.setBody({
 			status: 401,
 			message: 'Your authentication token failed validation',
 		});
-		callback(null, response);
 	}
+
+	callback(null, response);
 
 }

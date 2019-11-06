@@ -37,11 +37,10 @@ class DialPadDialog extends React.Component {
 
   setCall = callUpdate => {
     this.setState({ call: callUpdate });
-    console.log("call state set: ", callUpdate);
   };
 
   render() {
-    const { classes, onClose, selectedValue, ...other } = this.props;
+    const { classes, onClose, ...other } = this.props;
 
     //window.onbeforeunload = function () { return false; }
 
@@ -78,7 +77,6 @@ DialPadDialog.propTypes = {
   classes: PropTypes.object.isRequired,
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
-  selectedValue: PropTypes.string.isRequired,
   backendHostname: PropTypes.string.isRequired
 };
 
@@ -118,7 +116,6 @@ export default class DialPadLauncher extends React.Component {
           Dialpad
         </SideLink>
         <DialPadDialog
-          selectedValue={this.state.selectedValue}
           open={this.state.open}
           onClose={this.handleClose}
         />
