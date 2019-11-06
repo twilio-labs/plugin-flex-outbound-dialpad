@@ -7,10 +7,8 @@
 exports.handler = async function (context, event, callback) {
 
   console.log("callback for: ", event.CallSid);
-  console.log("\tto:\t", event.To);
-  console.log("\tfrom:\t", event.From);
-  console.log("\tstatus:\t", event.CallStatus);
-  console.log("\tworkerSyncDoc:\t", event.workerSyncDoc);
+  console.log("status:\t", event.CallStatus);
+  console.log("workerSyncDoc:\t", event.workerSyncDoc);
 
   const response = new Twilio.Response();
 
@@ -29,7 +27,6 @@ exports.handler = async function (context, event, callback) {
         callStatus: event.CallStatus
       }
     }).then(newDoc => {
-      console.log("NewDoc data: ", newDoc.data);
       callback(null, response);
     })
 };

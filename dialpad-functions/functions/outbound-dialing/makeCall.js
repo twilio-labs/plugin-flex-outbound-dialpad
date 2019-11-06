@@ -61,10 +61,10 @@ function makeOutboundCall(context, event) {
 exports.handler = async function (context, event, callback) {
 
 	console.log("makeCall request parameters:");
-	console.log("\tto:", event.To);
-	console.log("\tfrom:", event.From);
-	console.log("\tworkerContactUri:", event.workerContactUri);
-	console.log("\tcallbackDomain:", event.functionsDomain);
+	console.log("to:", event.To);
+	console.log("from:", event.From);
+	console.log("workerContactUri:", event.workerContactUri);
+	console.log("callbackDomain:", event.functionsDomain);
 
 	const response = new Twilio.Response();
 
