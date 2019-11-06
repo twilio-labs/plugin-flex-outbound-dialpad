@@ -26,10 +26,10 @@ class ConferenceService {
         },
         method: 'POST',
         body: (
-          `token=${token}`
-          + `&conference=${conference}`
-          + `&participant=${participantSid}`
-          + `&hold=${hold}`
+          `token=${encodeURIComponent(token)}`
+          + `&conference=${encodeURIComponent(conference)}`
+          + `&participant=${encodeURIComponent(participantSid)}`
+          + `&hold=${encodeURIComponent(hold)}`
         )
       })
         .then(() => {
@@ -54,10 +54,10 @@ class ConferenceService {
         },
         method: 'POST',
         body: (
-          `token=${token}`
-          + `&conference=${conference}`
-          + `&participant=${participantSid}`
-          + `&endConferenceOnExit=${endConferenceOnExit}`
+          `token=${encodeURIComponent(token)}`
+          + `&conference=${encodeURIComponent(conference)}`
+          + `&participant=${encodeURIComponent(participantSid)}`
+          + `&endConferenceOnExit=${encodeURIComponent(endConferenceOnExit)}`
         )
       })
         .then(response => response.json())
@@ -84,7 +84,7 @@ class ConferenceService {
           'Content-Type': 'application/x-www-form-urlencoded'
         },
         method: 'POST',
-        body: `token=${token}&taskSid=${taskSid}&from=${from}&to=${to}`
+        body: `token=${encodeURIComponent(token)}&taskSid=${encodeURIComponent(taskSid)}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`
       })
         .then(response => response.json())
         .then(json => {
@@ -148,9 +148,9 @@ class ConferenceService {
         },
         method: 'POST',
         body: (
-          `token=${token}`
-          + `&conference=${conference}`
-          + `&participant=${participantSid}`
+          `token=${encodeURIComponent(token)}`
+          + `&conference=${encodeURIComponent(conference)}`
+          + `&participant=${encodeURIComponent(participantSid)}`
         )
       })
         .then(() => {
