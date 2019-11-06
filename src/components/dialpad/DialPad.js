@@ -373,7 +373,7 @@ export class DialPad extends React.Component {
     if (
       this.checkNoVoiceTasksOpen() &&
       this.props.number !== "" &&
-      (!this.props.call || this.props.call.callStatus === "" || this.props.call.callStatus === "completed" || this.props.call.callStatus === "canceled") &&
+      (!this.props.call || this.props.call.callStatus === "" || this.props.call.callStatus === "completed" || this.props.call.callStatus === "canceled" || this.props.call.callStatus === "failed") &&
       this.props.activeCall === ""
     ) {
       this.setAgentUnavailable()
