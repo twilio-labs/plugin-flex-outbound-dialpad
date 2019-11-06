@@ -5,7 +5,7 @@
 
 */
 import { ConferenceParticipant, Manager } from '@twilio/flex-ui';
-import { FUNCTIONS_HOSTNAME, DEFAULT_FROM_NUMBER } from "../OutboundDialingWithConferencePlugin";
+import { FUNCTIONS_HOSTNAME } from "../OutboundDialingWithConferencePlugin";
 
 
 class ConferenceService {

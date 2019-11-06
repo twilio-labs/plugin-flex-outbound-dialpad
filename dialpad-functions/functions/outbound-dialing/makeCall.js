@@ -49,22 +49,18 @@ function makeOutboundCall(context, event) {
 			})
 			.then(call => {
 				console.log("call created: ", call.sid);
-				console.log("\tto:\t", call.to);
-				console.log("\tfrom:\t", call.from);
-				console.log("\tstatus:\t", call.status.toString());
-				resolve({ success: true, call: call });
+				resolve({ call: call, error: null });
 			})
 			.catch(error => {
 				console.log("call creation failed");
-				console.log("\tERROR: ", error.message);
-				resolve({ success: false, error: error });
+				resolve({ call: null, error });
 			});
 	});
 }
 
 exports.handler = async function (context, event, callback) {
 
-	console.log("makeCall for:");
+	console.log("makeCall request parameters:");
 	console.log("\tto:", event.To);
 	console.log("\tfrom:", event.From);
 	console.log("\tworkerContactUri:", event.workerContactUri);
@@ -81,18 +77,18 @@ exports.handler = async function (context, event, callback) {
 
 	if (tokenResponse.valid) {
 		const makeCallResult = await makeOutboundCall(context, event)
-		if (!makeCallResult.success) {
-			response.setStatusCode(500)
+		if (makeCallResult.error) {
+			response.setStatusCode(makeCallResult.error.status)
 		}
-		response.setBody(makeCallResult)
-		callback(null, response);
+		response.setBody(makeCallResult);
 	} else {
 		response.setStatusCode(401);
 		response.setBody({
 			status: 401,
 			message: 'Your authentication token failed validation',
 		});
-		callback(null, response);
 	}
+
+	callback(null, response);
 
 }
