@@ -17,9 +17,6 @@ import Backspace from "@material-ui/icons/Backspace";
 import classNames from "classnames";
 import { connect } from "react-redux";
 
-
-import { takeOutboundCall } from "../../eventListeners/workerClient/reservationCreated";
-
 import { FUNCTIONS_HOSTNAME, DEFAULT_FROM_NUMBER, SYNC_CLIENT } from "../../OutboundDialingWithConferencePlugin"
 
 const styles = theme => ({
@@ -115,21 +112,9 @@ const redButton = createMuiTheme({
 export class DialPad extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      number: ""
-    };
-
 
     this.token = Manager.getInstance().user.token;
     this.syncDocName = `${this.props.workerContactUri}.outbound-call`;
-
-    //audio credit https://freesound.org/people/AnthonyRamirez/sounds/455413/
-    //creative commons license
-    this.ringSound = new Audio(
-      "https://freesound.org/data/previews/455/455413_7193358-lq.mp3"
-    );
-    this.ringSound.loop = true;
-    this.ringSound.volume = 0.5;
   }
 
   buttons = [
@@ -284,7 +269,7 @@ export class DialPad extends React.Component {
                     this.props.call.callStatus === "dialing" ? classes.hide : ""
                   )}
                   onClick={e => {
-                    this.dial(this.state.number);
+                    this.dial(this.props.number);
                   }}
                 >
                   <Phone />
@@ -320,61 +305,24 @@ export class DialPad extends React.Component {
     );
   }
 
-  updateStateFromSyncDoc(docObject) {
-    console.log(docObject);
-    this.props.setCallFunction(docObject);
-
-    if (docObject.callStatus === "ringing") {
-      this.ringSound.play();
-    } else if (docObject.callStatus === "in-progress") {
-      this.ringSound.pause();
-      this.ringSound.currentTime = 0;
-      SYNC_CLIENT
-        .document(this.syncDocName)
-        .then(doc => {
-          doc.update({ callSid: "", callStatus: "completed" });
-        })
-      takeOutboundCall();
-      this.props.closeViewFunction();
-    } else if (
-      docObject.callStatus === "completed" ||
-      docObject.callStatus === "canceled"
-    ) {
-      this.ringSound.pause();
-      this.ringSound.currentTime = 0;
-    }
-  }
-
-
-  initSyncDoc() {
-    // init sync doc on component mount
-    SYNC_CLIENT
-      .document(this.syncDocName)
-      .then(doc => {
-        this.updateStateFromSyncDoc(doc.value);
-        doc.on("updated", updatedDoc => {
-          this.updateStateFromSyncDoc(updatedDoc.value)
-        })
-      })
-  }
-
   componentDidMount() {
-    this.initSyncDoc();
-
+    console.log("Mounting Dialpad");
     document.addEventListener("keydown", this.eventkeydownListener, false);
     document.addEventListener("keyup", this.eventListener, false);
     document.addEventListener("paste", this.pasteListener, false);
+
+    console.log("PROPS: ", this.props);
+    if (this.props.autoDial) {
+      this.dial();
+    }
   }
 
   componentWillUnmount() {
     console.log("Unmounting Dialpad");
-    //this.syncClient = null;
 
     document.removeEventListener("keydown", this.eventkeydownListener, false);
     document.removeEventListener("keyup", this.eventListener, false);
     document.removeEventListener("paste", this.pasteListener, false);
-    //this.ringSound = null;
-    //this.props.setCallFunction({ callSid: "", callStatus: "" });
   }
 
   setAgentUnavailable() {
@@ -404,22 +352,27 @@ export class DialPad extends React.Component {
     })
   }
 
-  dial(number) {
+  dial() {
+    console.log("ATTEMPTING TO DIAL");
+    console.log("Number: ", this.props.number);
+    console.log("callStatus: ", this.props.call.callStatus);
     if (
-      this.state.number !== "" &&
-      this.props.call.callStatus !== "dialing"
+      this.props.number !== "" &&
+      (!this.props.call || this.props.call.callStatus === "" || this.props.call.callStatus === "completed" || this.props.call.callStatus === "canceled") &&
+      this.props.activeCall === ""
     ) {
-      console.log("Calling: ", number);
       this.setAgentUnavailable()
         .then(() => this.orchestrateMakeCall())
         .catch();
+    } else {
+      Notifications.showNotification("CantDialOut");
     }
   }
 
   orchestrateMakeCall() {
     if (!this.props.available) {
       this.props.setCallFunction({ callSid: "", callStatus: "dialing" })
-      this.makeDialFunctionCall(this.state.number)
+      this.makeDialFunctionCall(this.props.number)
         .then(response => {
           if (response.error) {
             this.props.setCallFunction({ callSid: "", callStatus: "" });
@@ -446,11 +399,11 @@ export class DialPad extends React.Component {
       'Content-Type': 'application/x-www-form-urlencoded'
     }
     const body = (
-      `token=${this.token}`
-      + `&To=${to}`
-      + `&From=${from}`
-      + `&workerContactUri=${this.props.workerContactUri}`
-      + `&functionsDomain=${FUNCTIONS_HOSTNAME}`
+      `token=${encodeURIComponent(this.token)}`
+      + `&To=${encodeURIComponent(to)}`
+      + `&From=${encodeURIComponent(from)}`
+      + `&workerContactUri=${encodeURIComponent(this.props.workerContactUri)}`
+      + `&functionsDomain=${encodeURIComponent(FUNCTIONS_HOSTNAME)}`
     )
 
     return new Promise((resolve, reject) => {
@@ -490,7 +443,7 @@ export class DialPad extends React.Component {
             SYNC_CLIENT
               .document(this.syncDocName)
               .then(doc => {
-                doc.update({ callSid: "", callStatus: "completed" });
+                doc.update({ call: { callSid: "", callStatus: "completed" } });
               })
             this.ringSound.pause();
           }
@@ -567,26 +520,24 @@ export class DialPad extends React.Component {
         callStatus === "completed" ||
         callStatus === "canceled"
       ) {
-        this.dial(this.state.number);
+        this.dial();
       }
     }
   }
 
   backspaceAll() {
-    this.setState({ number: "" });
+    this.props.setNumberFunction("");
   }
 
   backspace() {
-    this.setState({
-      number: this.state.number.substring(0, this.state.number.length - 1)
-    });
+    this.props.setNumberFunction(this.props.number.substring(0, this.props.number.length - 1));
   }
   buttonPress(value) {
     const activeCall = this.props.activeCall;
 
     if (activeCall === "") {
-      if (this.state.number.length < 13) {
-        this.setState({ number: this.state.number + value });
+      if (this.props.number.length < 13) {
+        this.props.setNumberFunction(this.props.number + value);
       }
     } else {
       console.debug("activeCall", activeCall);
@@ -614,7 +565,7 @@ export class DialPad extends React.Component {
         <Card className={classes.dialpad}>
           <CardContent>
             <div className={classes.headerInputContainer}>
-              <div className={classes.headerInput}>{this.state.number}</div>
+              <div className={classes.headerInput}>{this.props.number}</div>
               <ClickNHold
                 time={0.5}
                 onStart={this.backspace.bind(this)}

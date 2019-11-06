@@ -23,8 +23,12 @@ exports.handler = async function (context, event, callback) {
   syncService.documents(event.workerSyncDoc)
     .update({
       data: {
-        callSid: event.CallSid,
-        callStatus: event.CallStatus
+        remoteOpen: false,
+        numberToDial: event.To,
+        call: {
+          callSid: event.CallSid,
+          callStatus: event.CallStatus
+        }
       }
     }).then(newDoc => {
       callback(null, response);

@@ -32,3 +32,13 @@ if (!manager.strings.activityStateUnavailable) {
     type: NotificationType.error
   });
 }
+
+if (!manager.strings.cantDialOut) {
+  manager.strings.cantDialOut = "You cannot make a call while active with another call";
+
+  Notifications.registerNotification({
+    id: "CantDialOut",
+    content: "cantDialOut",
+    type: NotificationType.warning
+  });
+}
