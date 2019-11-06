@@ -7,6 +7,7 @@ export function registerReservationCreatedExtensions(manager) {
 }
 
 export function takeOutboundCall() {
+  console.log("OUTBOUND DIALPAD: Entering Outbound Only");
   IsOutbound = true;
 
   return new Promise((resolve, reject) => {
@@ -47,6 +48,7 @@ function handleReservationTask(reservation) {
         sid: reservation.sid
       });
 
+      console.log("OUTBOUND DIALPAD: Exiting Outbound Only");
       IsOutbound = false;
     } else if (reservation.task.taskChannelUniqueName === "voice") {
       Actions.invokeAction("RejectTask", {
