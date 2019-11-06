@@ -4,7 +4,7 @@
 exports.handler = async function (context, event, callback) {
 
 	console.log("number to dial: ", event.To);
-	console.log("workerSyncDoc:", event.workerSyncDoc);
+	console.log("workerContactUri:", event.workerContactUri);
 
 	const response = new Twilio.Response();
 
@@ -16,7 +16,7 @@ exports.handler = async function (context, event, callback) {
 	const client = context.getTwilioClient();
 	const syncService = client.sync.services(context.TWILIO_SYNC_SERVICE_SID);
 
-	syncService.documents(event.workerSyncDoc)
+	syncService.documents(event.workerContactUri + ".outbound-call")
 		.update({
 			data: {
 				remoteOpen: true,
