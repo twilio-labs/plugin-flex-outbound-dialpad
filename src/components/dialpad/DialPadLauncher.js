@@ -50,7 +50,7 @@ class DialPadDialog extends React.Component {
         .document(this.syncDocName)
         .then(doc => {
           doc.update({
-            call: { callSid: "", callStatus: "" },
+            call: { callSid: "", callStatus: "accepted" },
             numberToDial: "",
             remoteOpen: false
           });

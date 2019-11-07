@@ -336,9 +336,12 @@ export class DialPad extends React.Component {
     document.removeEventListener("keyup", this.eventListener, false);
     document.removeEventListener("paste", this.pasteListener, false);
 
-    Actions.invokeAction("SetActivity", {
-      activityName: this.initialActivity
-    })
+    if (isTerminalState(this.props.call.callStatus)) {
+      console.log("CALL STATUS TO SWITCH ACTIVITY IS: ", this.props.call.callStatus);
+      Actions.invokeAction("SetActivity", {
+        activityName: this.initialActivity
+      })
+    }
 
     SYNC_CLIENT
       .document(this.syncDocName)
