@@ -18,6 +18,10 @@ import classNames from "classnames";
 import { connect } from "react-redux";
 
 import { FUNCTIONS_HOSTNAME, DEFAULT_FROM_NUMBER, SYNC_CLIENT } from "../../OutboundDialingWithConferencePlugin"
+import { blockForOutboundCall, unblockForOutBoundCall } from "../../eventListeners/workerClient/reservationCreated";
+import { isTerminalState } from "../../utilities/CallStateUtil"
+
+
 
 const styles = theme => ({
   main: {
@@ -311,18 +315,36 @@ export class DialPad extends React.Component {
     document.addEventListener("keyup", this.eventListener, false);
     document.addEventListener("paste", this.pasteListener, false);
 
+    blockForOutboundCall();
+    this.setAgentUnavailable();
+
     console.log("PROPS: ", this.props);
     if (this.props.autoDial) {
       this.dial();
     }
+
+    this.initialActivity = Manager.getInstance().workerClient.activity.name;
+    console.log("INITIAL ACTIVITY: ", this.initialActivity);
+
   }
 
   componentWillUnmount() {
     console.log("Unmounting Dialpad");
 
+    unblockForOutBoundCall();
     document.removeEventListener("keydown", this.eventkeydownListener, false);
     document.removeEventListener("keyup", this.eventListener, false);
     document.removeEventListener("paste", this.pasteListener, false);
+
+    Actions.invokeAction("SetActivity", {
+      activityName: this.initialActivity
+    })
+
+    SYNC_CLIENT
+      .document(this.syncDocName)
+      .then(doc => {
+        doc.update({ "remoteOpen": false });
+      })
   }
 
   setAgentUnavailable() {
@@ -332,6 +354,7 @@ export class DialPad extends React.Component {
         activityName: "Busy"
       })
         .then(() => {
+          console.log("Agent is now Busy");
           resolve();
         })
         .catch(error => {
@@ -339,6 +362,7 @@ export class DialPad extends React.Component {
             activityName: "Offline"
           })
             .then(() => {
+              console.log("Agent is now Offline");
               resolve();
             })
             .catch(() => {
@@ -373,22 +397,23 @@ export class DialPad extends React.Component {
     if (
       this.checkNoVoiceTasksOpen() &&
       this.props.number !== "" &&
-      (!this.props.call || this.props.call.callStatus === "" || this.props.call.callStatus === "completed" || this.props.call.callStatus === "canceled" || this.props.call.callStatus === "failed") &&
+      (!this.props.call || isTerminalState(this.props.call.callStatus)) &&
       this.props.activeCall === ""
     ) {
-      this.setAgentUnavailable()
-        .then(() => this.orchestrateMakeCall())
-        .catch();
+      this.orchestrateMakeCall()
+
     } else {
       Notifications.showNotification("CantDialOut");
     }
   }
 
   orchestrateMakeCall() {
+    console.log("Orhcestrating call");
     if (!this.props.available) {
       this.props.setCallFunction({ callSid: "", callStatus: "dialing" })
       this.makeDialFunctionCall(this.props.number)
         .then(response => {
+          console.log("resolved make dial function succesfully");
           if (response.error) {
             this.props.setCallFunction({ callSid: "", callStatus: "" });
             Notifications.showNotification("BackendError", {
@@ -402,6 +427,8 @@ export class DialPad extends React.Component {
             message: error.error.message
           });
         })
+    } else {
+      console.log("Agent was not unavailable yet");
     }
   }
 
@@ -419,7 +446,10 @@ export class DialPad extends React.Component {
       + `&From=${encodeURIComponent(from)}`
       + `&workerContactUri=${encodeURIComponent(this.props.workerContactUri)}`
       + `&functionsDomain=${encodeURIComponent(FUNCTIONS_HOSTNAME)}`
+      + `&workerSid=${encodeURIComponent(Manager.getInstance().workerClient.sid)}`
     )
+
+    console.log("hitting backend to dial");
 
     return new Promise((resolve, reject) => {
 

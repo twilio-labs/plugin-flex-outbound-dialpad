@@ -1,4 +1,4 @@
-import { Actions, Notifications } from "@twilio/flex-ui";
+import { Actions } from "@twilio/flex-ui";
 
 var IsOutbound = false;
 
@@ -6,31 +6,17 @@ export function registerReservationCreatedExtensions(manager) {
   manager.workerClient.on("reservationCreated", handleReservationTask);
 }
 
-export function takeOutboundCall() {
+export function blockForOutboundCall() {
   console.log("OUTBOUND DIALPAD: Entering Outbound Only");
   IsOutbound = true;
-
-  return new Promise((resolve, reject) => {
-    Actions.invokeAction("SetActivity", {
-      activityName: "Idle"
-    })
-      .then(() => {
-        resolve()
-      })
-      .catch(() => {
-        Actions.invokeAction("SetActivity", {
-          activityName: "Available"
-        })
-          .then(() => resolve())
-          .catch(() => {
-            Notifications.showNotification("ActivityStateUnavailable", {
-              state1: "Idle",
-              state2: "Available"
-            });
-          });
-      });
-  });
 }
+
+export function unblockForOutBoundCall() {
+  console.log("OUTBOUND DIALPAD: Exiting Outbound Only");
+  IsOutbound = false;
+}
+
+
 
 function handleReservationTask(reservation) {
   if (IsOutbound) {
@@ -38,18 +24,26 @@ function handleReservationTask(reservation) {
       reservation.task.attributes.type === "outbound" &&
       reservation.task.attributes.autoAnswer === "true"
     ) {
-      Actions.invokeAction("NavigateToView", {
-        viewName: "agent-desktop"
-      });
-      Actions.invokeAction("SelectTask", {
-        sid: reservation.sid
-      });
+      console.time("AcceptTask");
       Actions.invokeAction("AcceptTask", {
         sid: reservation.sid
       });
+      console.timeEnd("AcceptTask");
 
-      console.log("OUTBOUND DIALPAD: Exiting Outbound Only");
-      IsOutbound = false;
+      console.time("navigate");
+      Actions.invokeAction("NavigateToView", {
+        viewName: "agent-desktop"
+      });
+      console.timeEnd("navigate");
+
+      console.time("selectTask");
+      Actions.invokeAction("SelectTask", {
+        sid: reservation.sid
+      });
+      console.timeEnd("selectTask");
+
+      unblockForOutBoundCall();
+
     } else if (reservation.task.taskChannelUniqueName === "voice") {
       Actions.invokeAction("RejectTask", {
         sid: reservation.sid

@@ -7,7 +7,8 @@ import DialPad from "./DialPad";
 import Close from "@material-ui/icons/Close";
 import styled from "react-emotion";
 import { withStyles } from "@material-ui/core/styles";
-import { takeOutboundCall } from "../../eventListeners/workerClient/reservationCreated";
+import { blockForOutboundCall, unblockForOutBoundCall } from "../../eventListeners/workerClient/reservationCreated";
+import { isTerminalState } from '../../utilities/CallStateUtil'
 import { SYNC_CLIENT } from "../../OutboundDialingWithConferencePlugin"
 
 const StyledDialog = withStyles({
@@ -45,7 +46,6 @@ class DialPadDialog extends React.Component {
     } else if (this.state.call.callStatus === "in-progress") {
       this.ringSound.pause();
       this.ringSound.currentTime = 0;
-
       SYNC_CLIENT
         .document(this.syncDocName)
         .then(doc => {
@@ -55,12 +55,11 @@ class DialPadDialog extends React.Component {
             remoteOpen: false
           });
         })
-      takeOutboundCall();
       this.handleClose();
     } else if (
-      this.state.call.callStatus === "completed" ||
-      this.state.call.callStatus === "canceled"
+      isTerminalState(this.state.call.callStatus)
     ) {
+      unblockForOutBoundCall()
       this.ringSound.pause();
       this.ringSound.currentTime = 0;
     }

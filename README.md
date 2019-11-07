@@ -53,6 +53,8 @@ The plugin assumes an activity of "Busy" or "Offline" is configured for making t
 
 This plugin is not compatible with the dialpad plugin that is listed as an "Experimental feature" - the expiremental feature must be turned off.
 
+If you place a "phone" attribute on the worker and assign it a twilio or verified number, the call will be placed from that number instead of the default number.
+
 # Changelog
 
 v1.2 - converted plugin to use Twilio functions and sync maps to manage state.  Also merged in external transfer features.
