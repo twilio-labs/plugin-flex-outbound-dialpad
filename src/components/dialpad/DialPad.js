@@ -433,7 +433,7 @@ export class DialPad extends React.Component {
           resolve(json);
         })
         .catch(x => {
-          x = (x == "TypeError: Failed to fetch") ? "Backend not available" : x
+          x = (x === "TypeError: Failed to fetch") ? "Backend not available" : x
           resolve({ error: { message: x } })
         })
 
@@ -494,7 +494,7 @@ export class DialPad extends React.Component {
           resolve(json);
         })
         .catch(x => {
-          x = (x == "TypeError: Failed to fetch") ? "Backend not available" : x
+          x = (x === "TypeError: Failed to fetch") ? "Backend not available" : x
           resolve({ error: { message: x } })
         })
     })
