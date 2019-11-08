@@ -19,7 +19,7 @@ exports.handler = async function (context, event, callback) {
 	syncService.documents(event.workerContactUri + ".outbound-call")
 		.update({
 			data: {
-				remoteOpen: true,
+				autoDial: true,
 				numberToDial: event.To,
 			}
 		}).then(newDoc => {

@@ -42,3 +42,13 @@ if (!manager.strings.cantDialOut) {
     type: NotificationType.warning
   });
 }
+
+if (!manager.strings.cantCloseDialpad) {
+  manager.strings.cantCloseDialpad = "You cannot close the dialpad when a call has been started, please wait for it to be answered or hang up";
+
+  Notifications.registerNotification({
+    id: "CantCloseDialpad",
+    content: "cantCloseDialpad",
+    type: NotificationType.warning
+  });
+}

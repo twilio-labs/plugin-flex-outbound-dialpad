@@ -36,7 +36,9 @@ function makeOutboundCall(context, event) {
 			event.functionsDomain +
 			"/outbound-dialing/callStatusUpdateHandler?workerSyncDoc=" +
 			event.workerContactUri +
-			".outbound-call"
+			".outbound-call" +
+			"&workerSid=" +
+			event.workerSid
 		);
 
 		client.calls
@@ -65,6 +67,7 @@ exports.handler = async function (context, event, callback) {
 	console.log("from:", event.From);
 	console.log("workerContactUri:", event.workerContactUri);
 	console.log("callbackDomain:", event.functionsDomain);
+	console.log("workerSid", event.workerSid);
 
 	const response = new Twilio.Response();
 
