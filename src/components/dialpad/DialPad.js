@@ -511,7 +511,7 @@ export class DialPad extends React.Component {
     const { call } = this.props
     e.preventDefault();
     e.stopPropagation();
-    if ((e.keyCode > 47 && e.keyCode < 58) || e.keyCode === 187) {
+    if ((e.keyCode > 47 && e.keyCode < 58) || (e.keyCode >= 96 && e.keyCode <= 105) || e.keyCode === 187 || e.keyCode === 107) {
       //listen to 0-9 & +
       this.buttonPress(e.key);
     } else if (e.keyCode === 13) {
