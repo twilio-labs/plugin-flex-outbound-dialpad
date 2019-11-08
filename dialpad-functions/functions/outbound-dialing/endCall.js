@@ -29,7 +29,7 @@ function hangupCall(context, event) {
 			.update({ status: "completed" })
 			.then(call => {
 				console.log("terminated call: ", call.sid);
-				resolve({ call, error: null });
+				resolve({ call: { callStatus: call.status, callSid: call.sid }, error: null });
 			})
 			.catch(error => {
 				console.log("Failed to terminate call: ", data.callSid);

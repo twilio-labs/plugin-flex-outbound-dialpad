@@ -1,15 +1,13 @@
 import * as React from "react";
 
-import { SideLink, Manager } from "@twilio/flex-ui";
+import { SideLink, Notifications } from "@twilio/flex-ui";
 import Dialog from "@material-ui/core/Dialog";
 import PropTypes from "prop-types";
 import DialPad from "./DialPad";
 import Close from "@material-ui/icons/Close";
 import styled from "react-emotion";
 import { withStyles } from "@material-ui/core/styles";
-import { blockForOutboundCall, unblockForOutBoundCall } from "../../eventListeners/workerClient/reservationCreated";
-import { isTerminalState } from '../../utilities/CallStateUtil'
-import { SYNC_CLIENT } from "../../OutboundDialingWithConferencePlugin"
+import { CallStatus, RingingService, DialpadSyncDoc } from '../../utilities/DialPadUtil'
 
 const StyledDialog = withStyles({
   root: {
@@ -17,102 +15,113 @@ const StyledDialog = withStyles({
   }
 })(({ classes, ...other }) => <Dialog className={classes.root} {...other} />);
 
+
 class DialPadDialog extends React.Component {
+
   constructor(props) {
     super(props);
+
     this.state = {
-      remoteOpen: false,
+      autoDial: false,
       numberToDial: "",
       call: { callSid: "", callStatus: "" }
     };
 
-    this.syncDocName = `${Manager.getInstance().workerClient.attributes.contact_uri}.outbound-call`;
-
-    //audio credit https://freesound.org/people/AnthonyRamirez/sounds/455413/
-    //creative commons license
-    this.ringSound = new Audio(
-      "https://freesound.org/data/previews/455/455413_7193358-lq.mp3"
-    );
-    this.ringSound.loop = true;
-    this.ringSound.volume = 0.5;
-
-    this.setState = this.setState.bind(this);
+    this.setCallState = this.setCallState.bind(this);
+    this.setNumberState = this.setNumberState.bind(this);
   }
 
-  handleCallStatusChange() {
-    if (this.state.call.callStatus === "ringing") {
-      this.props.forceOpen();
-      this.ringSound.play();
-    } else if (this.state.call.callStatus === "in-progress") {
-      this.ringSound.pause();
-      this.ringSound.currentTime = 0;
-      SYNC_CLIENT
-        .document(this.syncDocName)
-        .then(doc => {
-          doc.update({
-            call: { callSid: "", callStatus: "accepted" },
-            numberToDial: "",
-            remoteOpen: false
-          });
-        })
-      this.handleClose();
-    } else if (
-      isTerminalState(this.state.call.callStatus)
-    ) {
-      unblockForOutBoundCall()
-      this.ringSound.pause();
-      this.ringSound.currentTime = 0;
-    }
-  }
+
 
   componentDidMount() {
-    console.log("Mounting DialPadLauncher");
+    console.log("OUTBOUND DIALPAD: Mounting DialPadLauncher");
     this.initSyncListener();
   }
 
   componentWillUnmount() {
-    console.log("Unmounting DialPadLauncher");
+    console.log("OUTBOUND DIALPAD: Unmounting DialPadLauncher");
   }
 
   initSyncListener() {
-    // init sync doc on component mount
-    SYNC_CLIENT
-      .document(this.syncDocName)
+
+    const { openDialpad } = this.props;
+
+    DialpadSyncDoc.getDialpadSyncDoc()
       .then(doc => {
+
+        console.log("OUTBOUND DIALPAD: Initial Sync Doc State: ", doc.value);
+        // map and respond to sync doc state upon load
         this.setState(doc.value)
-        this.handleCallStatusChange()
+        this.processCallStatus()
+
+        //add listener and handler for doc changes
         doc.on("updated", updatedDoc => {
+          console.log("OUTBOUND DIALPAD: Sync Doc Update Recieved: ", updatedDoc.value);
           this.setState(updatedDoc.value)
-          if (updatedDoc.value.remoteOpen) {
-            this.props.forceOpen();
+          if (updatedDoc.value.autoDial) {
+            openDialpad();
           }
-          this.handleCallStatusChange()
+          this.processCallStatus();
+
         })
+
       })
   }
 
-  handleClose = () => {
+  processCallStatus() {
     const { call } = this.state;
-    if (
-      call.callStatus !== "dialing" &&
-      call.callStatus !== "queued" &&
-      call.callStatus !== "ringing"
-    ) {
-      this.props.onClose();
+    const { openDialpad, closeDialpad } = this.props;
+
+    if (CallStatus.isRinging(call)) {
+      console.log("OUTBOUND DIALPAD: Call Status Update Ringing State");
+      // this ensures the dialpad is opened if the page is refreshed
+      openDialpad();
+      RingingService.startRinging();
+    } else if (CallStatus.isAnswered(call)) {
+      console.log("OUTBOUND DIALPAD: Call Status Update Answered State");
+      // The agent will be pushed into available
+      // by function handling the call status change
+      // "in-progress" - this is just to reset the sync doc
+      RingingService.stopRinging();
+      closeDialpad();
+    } else if (CallStatus.isTerminalState(call)) {
+      console.log("OUTBOUND DIALPAD: Call Status Update Terminal State");
+      // any termination state will reset the sync doc
+      // and make sure the dialpad isnt ringing
+      RingingService.stopRinging();
+      DialpadSyncDoc.clearSyncDoc();
+
+    }
+  }
+
+  // used to ensure dialpad popup can't be closed while making
+  // an outbound call
+  handleClose() {
+    const { call } = this.state;
+    const { closeDialpad } = this.props;
+
+    if (CallStatus.isCloseable(call)) {
+      closeDialpad();
+    } else {
+      Notifications.showNotification("CantCloseDialpad");
     }
   };
 
-  setCall = callUpdate => {
+  // used to allow state updated from child component
+  setCallState(callUpdate) {
+    console.log("OUTBOUND DIALPAD: Call State updated from Dialpad Popup:", callUpdate.callStatus);
+
     this.setState({ call: callUpdate });
   };
 
-  setNumber = numberUpdate => {
+  // used to allow state updated from child component
+  setNumberState(numberUpdate) {
+    console.log("OUTBOUND DIALPAD: Number State updated from Dialpad Popup");
     this.setState({ numberToDial: numberUpdate });
   };
 
   render() {
     const { classes, onClose, ...other } = this.props;
-    //window.onbeforeunload = function () { return false; }
 
     return (
       <StyledDialog
@@ -136,9 +145,9 @@ class DialPadDialog extends React.Component {
           key="dialpadModal"
           call={this.state.call}
           number={this.state.numberToDial}
-          autoDial={this.state.remoteOpen}
-          setCallFunction={this.setCall}
-          setNumberFunction={this.setNumber}
+          autoDial={this.state.autoDial}
+          setCallState={this.setCallState}
+          setNumberState={this.setNumberState}
           closeViewFunction={this.handleClose}
         />
       </StyledDialog>
@@ -147,11 +156,12 @@ class DialPadDialog extends React.Component {
 }
 
 DialPadDialog.propTypes = {
-  classes: PropTypes.object.isRequired,
-  open: PropTypes.bool.isRequired,
-  onClose: PropTypes.func.isRequired,
-  backendHostname: PropTypes.string.isRequired
+  isOpen: PropTypes.bool.isRequired,
+  openDialpad: PropTypes.func.isRequired,
+  closeDialpad: PropTypes.func.isRequired,
 };
+
+
 
 const CloseButton = styled("div")`
   cursor: pointer;
@@ -163,17 +173,17 @@ const CloseButton = styled("div")`
 
 export default class DialPadLauncher extends React.Component {
   state = {
-    open: false
+    isOpen: false
   };
 
-  handleClickOpen = () => {
+  openDialpad = () => {
     this.setState({
-      open: true
+      isOpen: true
     });
   };
 
-  handleClose = () => {
-    this.setState({ open: false });
+  closeDialpad = () => {
+    this.setState({ isOpen: false });
   };
 
   render() {
@@ -184,14 +194,14 @@ export default class DialPadLauncher extends React.Component {
           icon="Call"
           iconActive="CallBold"
           isActive={this.props.activeView === "dialer"}
-          onClick={() => this.handleClickOpen()}
+          onClick={() => this.openDialpad()}
         >
           Dialpad
         </SideLink>
         <DialPadDialog
-          open={this.state.open}
-          forceOpen={this.handleClickOpen}
-          onClose={this.handleClose}
+          open={this.state.isOpen}
+          openDialpad={this.openDialpad}
+          closeDialpad={this.closeDialpad}
         />
       </div>
     );

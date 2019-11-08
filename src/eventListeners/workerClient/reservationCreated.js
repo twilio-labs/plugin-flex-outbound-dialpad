@@ -21,28 +21,21 @@ export function unblockForOutBoundCall() {
 function handleReservationTask(reservation) {
   if (IsOutbound) {
     if (
+      reservation.task.taskChannelUniqueName === "voice" &&
       reservation.task.attributes.type === "outbound" &&
       reservation.task.attributes.autoAnswer === "true"
     ) {
-      console.time("AcceptTask");
       Actions.invokeAction("AcceptTask", {
         sid: reservation.sid
       });
-      console.timeEnd("AcceptTask");
 
-      console.time("navigate");
       Actions.invokeAction("NavigateToView", {
         viewName: "agent-desktop"
       });
-      console.timeEnd("navigate");
 
-      console.time("selectTask");
       Actions.invokeAction("SelectTask", {
         sid: reservation.sid
       });
-      console.timeEnd("selectTask");
-
-      unblockForOutBoundCall();
 
     } else if (reservation.task.taskChannelUniqueName === "voice") {
       Actions.invokeAction("RejectTask", {

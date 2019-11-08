@@ -13,8 +13,7 @@ const updateSyncDoc = (context, event) => {
     syncService.documents(event.workerSyncDoc)
       .update({
         data: {
-          remoteOpen: false,
-          numberToDial: event.To,
+          autoDial: false,
           call: {
             callSid: event.CallSid,
             callStatus: event.CallStatus
@@ -61,7 +60,11 @@ exports.handler = async function (context, event, callback) {
   response.appendHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   var promiseArray = []
-  promiseArray.push(updateSyncDoc(context, event))
+
+  // We dont need to know about calls that are completed as this is the natural part of the life cycle after the call has been answered
+  if (event.CallStatus !== "completed") {
+    promiseArray.push(updateSyncDoc(context, event))
+  }
 
   if (event.CallStatus === "in-progress") {
     promiseArray.push(makeWorkerAvailable(context, event))

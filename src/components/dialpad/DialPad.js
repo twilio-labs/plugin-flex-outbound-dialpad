@@ -17,9 +17,9 @@ import Backspace from "@material-ui/icons/Backspace";
 import classNames from "classnames";
 import { connect } from "react-redux";
 
-import { FUNCTIONS_HOSTNAME, DEFAULT_FROM_NUMBER, SYNC_CLIENT } from "../../OutboundDialingWithConferencePlugin"
+
 import { blockForOutboundCall, unblockForOutBoundCall } from "../../eventListeners/workerClient/reservationCreated";
-import { isTerminalState } from "../../utilities/CallStateUtil"
+import { CallControls, CallStatus, RingingService, DialpadSyncDoc } from '../../utilities/DialPadUtil'
 
 
 
@@ -254,55 +254,52 @@ export class DialPad extends React.Component {
   }
 
   functionButtons() {
-    const { classes } = this.props;
+    const { classes, call, activeCall } = this.props;
 
     return (
       <div className={classes.numpadRowContainer} style={{ marginBottom: 0 }}>
-        {this.props.call.callStatus !== "queued" &&
-          this.props.call.callStatus !== "ringing" &&
-          this.props.activeCall === "" ? (
-            <div className={classes.numberButtonContainer}>
-              <MuiThemeProvider theme={greenButton}>
-                <Button
-                  variant="contained"
-                  style={{ color: "white" }}
-                  color="primary"
-                  className={classNames(
-                    classes.numberButton,
-                    classes.functionButton,
-                    this.props.call.callStatus === "dialing" ? classes.hide : ""
-                  )}
-                  onClick={e => {
-                    this.dial(this.props.number);
-                  }}
-                >
-                  <Phone />
-                </Button>
-              </MuiThemeProvider>
-            </div>
-          ) : (
+        {CallStatus.showGreenButton(call, activeCall) ? (
+          <div className={classes.numberButtonContainer}>
+            <MuiThemeProvider theme={greenButton}>
+              <Button
+                variant="contained"
+                style={{ color: "white" }}
+                color="primary"
+                className={classNames(
+                  classes.numberButton,
+                  classes.functionButton,
+                  this.props.call.callStatus === "dialing" ? classes.hide : ""
+                )}
+                onClick={e => {
+                  this.pressDial(this.props.number);
+                }}
+              >
+                <Phone />
+              </Button>
+            </MuiThemeProvider>
+          </div>
+        ) : (
             <div />
           )}
-        {this.props.call.callStatus === "queued" ||
-          this.props.call.callStatus === "ringing" ? (
-            <div className={classes.numberButtonContainer}>
-              <MuiThemeProvider theme={redButton}>
-                <Button
-                  variant="contained"
-                  style={{ color: "white" }}
-                  color="primary"
-                  className={classNames(
-                    classes.numberButton,
-                    classes.functionButton,
-                    this.props.call.callStatus === "queued" ? classes.hide : ""
-                  )}
-                  onClick={e => this.hangup(this.props.call.callSid)}
-                >
-                  <CallEnd />
-                </Button>
-              </MuiThemeProvider>
-            </div>
-          ) : (
+        {CallStatus.showRedButton(call) ? (
+          <div className={classes.numberButtonContainer}>
+            <MuiThemeProvider theme={redButton}>
+              <Button
+                variant="contained"
+                style={{ color: "white" }}
+                color="primary"
+                className={classNames(
+                  classes.numberButton,
+                  classes.functionButton,
+                  this.props.call.callStatus === "queued" ? classes.hide : ""
+                )}
+                onClick={e => this.pressHangup(this.props.call.callSid)}
+              >
+                <CallEnd />
+              </Button>
+            </MuiThemeProvider>
+          </div>
+        ) : (
             <div />
           )}
       </div>
@@ -310,7 +307,11 @@ export class DialPad extends React.Component {
   }
 
   componentDidMount() {
-    console.log("Mounting Dialpad");
+    console.log("OUTBOUND DIALPAD: Mounting Dialpad Popup");
+
+    this.initialActivity = Manager.getInstance().workerClient.activity.name;
+    console.log("OUTBOUND DIALPAD: Initial activity when dialpad launched", this.initialActivity);
+
     document.addEventListener("keydown", this.eventkeydownListener, false);
     document.addEventListener("keyup", this.eventListener, false);
     document.addEventListener("paste", this.pasteListener, false);
@@ -318,36 +319,43 @@ export class DialPad extends React.Component {
     blockForOutboundCall();
     this.setAgentUnavailable();
 
-    console.log("PROPS: ", this.props);
+
+    // As this is only checked when the dialpad is mounted
+    // auto dial only works when the dialpad is closed
     if (this.props.autoDial) {
-      this.dial();
+      console.log("OUTBOUND DIALPAD: Auto Dial triggered");
+      this.pressDial();
     }
-
-    this.initialActivity = Manager.getInstance().workerClient.activity.name;
-    console.log("INITIAL ACTIVITY: ", this.initialActivity);
-
   }
 
   componentWillUnmount() {
-    console.log("Unmounting Dialpad");
+    const { call } = this.props;
 
-    unblockForOutBoundCall();
+    console.log("OUTBOUND DIALPAD: Unmounting Dialpad Popup");
+
+
+    DialpadSyncDoc.clearSyncDoc();
     document.removeEventListener("keydown", this.eventkeydownListener, false);
     document.removeEventListener("keyup", this.eventListener, false);
     document.removeEventListener("paste", this.pasteListener, false);
 
-    if (isTerminalState(this.props.call.callStatus)) {
-      console.log("CALL STATUS TO SWITCH ACTIVITY IS: ", this.props.call.callStatus);
+    // We only want to return to the agents activity when unmounting
+    // if the call back status handler hasnt already done it for us.
+    // We do it in the callback status handler to expedite this transition
+    // and ultimately expedite the acceptance of the call
+    // Also when a call is in progress, we want the reservation created handler
+    // to be responsible for unblocking inbounce voice tasks.  This is because
+    // it is possible that the dialpad could close before the reservation comes
+    // through, this would mean a voice call could come in.
+    if (call.callStatus !== "in-progress") {
+      console.log("OUTBOUND DIALPAD: Returning to initial activity when dialpad launched", this.initialActivity);
+      unblockForOutBoundCall();
       Actions.invokeAction("SetActivity", {
         activityName: this.initialActivity
       })
     }
 
-    SYNC_CLIENT
-      .document(this.syncDocName)
-      .then(doc => {
-        doc.update({ "remoteOpen": false });
-      })
+
   }
 
   setAgentUnavailable() {
@@ -357,7 +365,7 @@ export class DialPad extends React.Component {
         activityName: "Busy"
       })
         .then(() => {
-          console.log("Agent is now Busy");
+          console.log("OUTBOUND DIALPAD: Agent is now Busy");
           resolve();
         })
         .catch(error => {
@@ -365,7 +373,7 @@ export class DialPad extends React.Component {
             activityName: "Offline"
           })
             .then(() => {
-              console.log("Agent is now Offline");
+              console.log("OUTBOUND DIALPAD: Agent is now Offline");
               resolve();
             })
             .catch(() => {
@@ -379,13 +387,13 @@ export class DialPad extends React.Component {
     })
   }
 
-  checkNoVoiceTasksOpen() {
+  noVoiceTasksOpen() {
     const { tasks } = this.props;
 
     var response = true;
     tasks.forEach(value => {
-      console.log(value);
       if (value.channelType === "voice") {
+        console.warn("OUTBOUND DIALPAD: Voice task is still open, probably in wrap up, canceling dial");
         response = false;
       }
     })
@@ -393,14 +401,15 @@ export class DialPad extends React.Component {
     return response;
   };
 
-  dial() {
-    console.log("ATTEMPTING TO DIAL");
-    console.log("Number: ", this.props.number);
-    console.log("callStatus: ", this.props.call.callStatus);
+  pressDial() {
+    console.log("OUTBOUND DIALPAD: Dial Button Pressed");
+
+    const { call } = this.props;
+
     if (
-      this.checkNoVoiceTasksOpen() &&
+      this.noVoiceTasksOpen() &&
       this.props.number !== "" &&
-      (!this.props.call || isTerminalState(this.props.call.callStatus)) &&
+      CallStatus.canDial(call) &&
       this.props.activeCall === ""
     ) {
       this.orchestrateMakeCall()
@@ -411,92 +420,65 @@ export class DialPad extends React.Component {
   }
 
   orchestrateMakeCall() {
-    console.log("Orhcestrating call");
-    if (!this.props.available) {
-      this.props.setCallFunction({ callSid: "", callStatus: "dialing" })
-      this.makeDialFunctionCall(this.props.number)
-        .then(response => {
-          console.log("resolved make dial function succesfully");
-          if (response.error) {
-            this.props.setCallFunction({ callSid: "", callStatus: "" });
-            Notifications.showNotification("BackendError", {
-              message: response.error.message
-            });
-          }
-        })
-        .catch(error => {
-          this.props.setCallFunction({ callSid: "", callStatus: "" })
+    console.log("OUTBOUND DIALPAD: Orhcestrating call");
+
+    const { setCallState } = this.props;
+
+    // setup an interim callStatus of dialing, while we make the backend call
+    // this will block any other calls being made
+    setCallState({ callSid: "", callStatus: "dialing" })
+
+    CallControls.makeCall(this.props.number)
+      .then(response => {
+
+        if (response.error) {
+          const { message } = response.error
+          console.error("OUTBOUND DIALPAD: failure placing call", message);
+
           Notifications.showNotification("BackendError", {
-            message: error.error.message
+            message: message
           });
-        })
-    } else {
-      console.log("Agent was not unavailable yet");
-    }
-  }
 
-  makeDialFunctionCall(to) {
-
-    const from = this.props.phoneNumber ? this.props.phoneNumber : DEFAULT_FROM_NUMBER;
-
-    const makeCallURL = `https://${FUNCTIONS_HOSTNAME}/outbound-dialing/makeCall`
-    const headers = {
-      'Content-Type': 'application/x-www-form-urlencoded'
-    }
-    const body = (
-      `token=${encodeURIComponent(this.token)}`
-      + `&To=${encodeURIComponent(to)}`
-      + `&From=${encodeURIComponent(from)}`
-      + `&workerContactUri=${encodeURIComponent(this.props.workerContactUri)}`
-      + `&functionsDomain=${encodeURIComponent(FUNCTIONS_HOSTNAME)}`
-      + `&workerSid=${encodeURIComponent(Manager.getInstance().workerClient.sid)}`
-    )
-
-    console.log("hitting backend to dial");
-
-    return new Promise((resolve, reject) => {
-
-      fetch(makeCallURL, {
-        headers,
-        method: 'POST',
-        body
+          // reset the "dialing" status the blocked further calls
+          setCallState({ callSid: "", callStatus: "" })
+        } else {
+          console.log("OUTBOUND DIALPAD: call succesfully placed");
+        }
       })
-        .then(response => response.json())
-        .then(json => {
-          resolve(json);
-        })
-        .catch(x => {
-          x = (x == "TypeError: Failed to fetch") ? "Backend not available" : x
-          resolve({ error: { message: x } })
-        })
+      .catch(error => {
+        console.error("OUTBOUND DIALPAD: failure placing call", error);
+        Notifications.showNotification("BackendError", {
+          message: error.error.message
+        });
 
-    })
+        // reset the "dialing" status the blocked further calls
+        setCallState({ callSid: "", callStatus: "" })
+      })
+
   }
 
-  hangup(callSid) {
-    // if hangup occurs while queued, twilio fails and fails
+
+  pressHangup(callSid) {
+    // if hangup occurs while queued, twilio fails and also fails
     // to handle future hang up requests
     if (this.props.call.callStatus !== "queued") {
 
-      this.makeHangupFunctionCall(callSid)
+      CallControls.hangupCall(callSid)
         .then(response => {
-          if (response.error) {
+          const { call, error } = response;
+          if (error) {
+            console.error("OUTBOUND DIALPAD: Issue when hanging up call, ", response.error.message);
             Notifications.showNotification("BackendError", {
               message: response.error.message
             });
           }
-          if (response.call && (response.call.status === "completed" || response.call.status === "cancelled")) {
-            // in case of emergency, if hangup operation is successfull
-            // this ensures sync map is updated to allow for more calls
-            SYNC_CLIENT
-              .document(this.syncDocName)
-              .then(doc => {
-                doc.update({ call: { callSid: "", callStatus: "completed" } });
-              })
-            this.ringSound.pause();
+          if (CallStatus.isTerminalState(call)) {
+            DialpadSyncDoc.clearSyncDoc();
+            RingingService.stopRinging();
           }
         })
         .catch(error => {
+          console.error("OUTBOUND DIALPAD: Unknown issue calling hangup, ", error);
           Notifications.showNotification("BackendError", {
             message: error
           });
@@ -504,37 +486,10 @@ export class DialPad extends React.Component {
     }
   }
 
-  makeHangupFunctionCall = (CallSid) => {
-
-    const endCallURL = `https://${FUNCTIONS_HOSTNAME}/outbound-dialing/endCall`
-    const headers = {
-      'Content-Type': 'application/x-www-form-urlencoded'
-    }
-    const body = (
-      `token=${this.token}`
-      + `&CallSid=${CallSid}`
-    )
-
-    return new Promise((resolve, reject) => {
-
-      fetch(endCallURL, {
-        headers,
-        method: 'POST',
-        body
-      })
-        .then(response => response.json())
-        .then(json => {
-          resolve(json);
-        })
-        .catch(x => {
-          x = (x == "TypeError: Failed to fetch") ? "Backend not available" : x
-          resolve({ error: { message: x } })
-        })
-    })
-  }
-
   eventListener = e => this.keyPressListener(e);
+
   eventkeydownListener = e => this.keydownListener(e);
+
   pasteListener = e => {
     const paste = (e.clipboardData || window.clipboardData)
       .getData("text")
@@ -553,7 +508,7 @@ export class DialPad extends React.Component {
   }
 
   keyPressListener(e) {
-    var callStatus = this.props.call.callStatus;
+    const { call } = this.props
     e.preventDefault();
     e.stopPropagation();
     if ((e.keyCode > 47 && e.keyCode < 58) || e.keyCode === 187) {
@@ -561,34 +516,33 @@ export class DialPad extends React.Component {
       this.buttonPress(e.key);
     } else if (e.keyCode === 13) {
       //listen for enter
-      if (callStatus === "ringing" || callStatus === "in-progress") {
-        this.hangup(this.props.call.callSid);
+      if (CallStatus.isRinging(call)) {
+        this.pressHangup(this.props.call.callSid);
       } else if (
-        callStatus === "" ||
-        callStatus === "completed" ||
-        callStatus === "canceled"
+        call.callStatus === "" ||
+        CallStatus.isTerminalState(call)
       ) {
-        this.dial();
+        this.pressDial();
       }
     }
   }
 
   backspaceAll() {
-    this.props.setNumberFunction("");
+    this.props.setNumberState("");
   }
 
   backspace() {
-    this.props.setNumberFunction(this.props.number.substring(0, this.props.number.length - 1));
+    this.props.setNumberState(this.props.number.substring(0, this.props.number.length - 1));
   }
+
   buttonPress(value) {
     const activeCall = this.props.activeCall;
 
     if (activeCall === "") {
       if (this.props.number.length < 13) {
-        this.props.setNumberFunction(this.props.number + value);
+        this.props.setNumberState(this.props.number + value);
       }
     } else {
-      console.debug("activeCall", activeCall);
       activeCall.sendDigits(value);
     }
   }
