@@ -25,6 +25,8 @@ function handleReservationTask(reservation) {
       reservation.task.attributes.type === "outbound" &&
       reservation.task.attributes.autoAnswer === "true"
     ) {
+      unblockForOutBoundCall()
+
       Actions.invokeAction("AcceptTask", {
         sid: reservation.sid
       });
