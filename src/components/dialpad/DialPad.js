@@ -362,7 +362,7 @@ export class DialPad extends React.Component {
     return new Promise((resolve, reject) => {
 
       Actions.invokeAction("SetActivity", {
-        activityName: "Busy"
+        activityName: "Outbound Calls"
       })
         .then(() => {
           console.log("OUTBOUND DIALPAD: Agent is now Busy");
@@ -378,7 +378,7 @@ export class DialPad extends React.Component {
             })
             .catch(() => {
               Notifications.showNotification("ActivityStateUnavailable", {
-                state1: "Busy",
+                state1: "Outbound Calls",
                 state2: "Offline"
               });
               reject();
