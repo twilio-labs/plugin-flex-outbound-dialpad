@@ -32,9 +32,11 @@ In the task router configuration in your twilio console, under the Flex Assignme
 ## Twilio Serverless Dependency
 You will need the [twilio CLI](https://www.twilio.com/docs/twilio-cli/quickstart) and the [serverless plugin](https://www.twilio.com/docs/labs/serverless-toolkit/getting-started) to deploy the functions you can install with the following commands
 
-$$`npm install twilio-cli -g`$$
+`npm install twilio-cli -g`
+
 and then
-$$`twilio plugins:install @twilio-labs/plugin-serverless`$$
+
+`twilio plugins:install @twilio-labs/plugin-serverless`
 
 
 ## How to use
@@ -56,17 +58,24 @@ $$`twilio plugins:install @twilio-labs/plugin-serverless`$$
 8. cd back to the root folder and run `npm start` to run locally or `npm run-script build` and deploy the generated ./build/plugin-outbound-dialing-with-conference.js to [twilio assests](https://www.twilio.com/console/assets/public) to include plugin with hosted Flex
 
 ## Important Notes
-The plugin assumes an activity of "Outbound Calls" or "Offline" is configured for making the worker automatically unavailable, if these are not worker activity states that are available, you can either add them or update the code to change to a different state.
+- The plugin assumes an activity of "Outbound Calls" or "Offline" is configured for making the worker automatically unavailable, if these are not worker activity states that are available, you can either add them or update the code to change to a different state.
 
-This plugin is not compatible with the dialpad plugin that is listed as an "Experimental feature" - the expiremental feature or more recently, the "Pre Release" feature must be turned off.
+- This plugin is not compatible with the dialpad plugin that is listed as an "Experimental feature" - the expiremental feature or more recently, the "Pre Release" feature must be turned off.
 
-If you place a "phone" attribute on the worker and assign it a twilio or verified number, the call will be placed from that number instead of the default number.
+- If you place a "phone" attribute on the worker and assign it a twilio or verified number, the call will be placed from that number instead of the default number.
 
-This solution doesnt support and is not suitable for direct agent to agent dialing.
+- This solution doesnt support and is not suitable for direct agent to agent dialing.
 
-Since the call is routed to the agent only after the call is answered, there can be a perceived delay, typically less than a second, of the agent and the customer connecting on the conference.
+- Since the call is routed to the agent only after the call is answered, there can be a perceived delay, typically less than a second, of the agent and the customer connecting on the conference.
 
-# Changelog
+## TODOs
+
+1. improve styling to better match base palette
+2. Add in improved text box for entering numbers with country code drop down
+3. Introduce callback task for making outbound calls from a callback 
+4. Update plugin builder to use serverless:cli for plugin asset deployment and align functions hostname automatically.
+
+## Changelog
 
 v1.2 - converted plugin to use Twilio functions and sync docs to manage state.  Also merged in external transfer features.
 
@@ -79,7 +88,3 @@ v1.0 - initial release
 ## Code of Conduct
 
 Please be aware that this project has a [Code of Conduct](https://github.com/twilio-labs/.github/blob/master/CODE_OF_CONDUCT.md). The tldr; is to just be excellent to each other ❤️
-
-# TODOs
-
-1. improve styling to better match base palette
