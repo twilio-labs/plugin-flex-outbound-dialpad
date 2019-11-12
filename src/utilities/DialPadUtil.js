@@ -46,8 +46,8 @@ class CallControlsClass {
 					resolve(json);
 				})
 				.catch(x => {
-					x = (x == "TypeError: Failed to fetch") ? "Backend not available" : x
-					resolve({ error: { message: x } })
+					let error_message = (x instanceof TypeError) ? "Backend not available" : x.message
+					resolve({ error: { message: error_message } })
 				})
 
 		})
@@ -79,8 +79,8 @@ class CallControlsClass {
 					resolve(json);
 				})
 				.catch(x => {
-					x = (x == "TypeError: Failed to fetch") ? "Backend not available" : x
-					resolve({ error: { message: x } })
+					let error_message = (x instanceof TypeError) ? "Backend not available" : x.message
+					resolve({ error: { message: error_message } })
 				})
 		})
 	}
