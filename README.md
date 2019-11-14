@@ -22,7 +22,7 @@ Before using this plugin you must first create a dedicated TaskRouter workflow f
 
 ![alt text](https://raw.githubusercontent.com/jhunter-twilio/outbound-dialing-backend/master/screenshots/workflow-config.png)
 
-### Activities (Optional)
+### Activities
 You can optionally setup a dedicated activity that the plugin will use when the dialpad is in the process of making a call.  This is required to block any incoming voice calls while the agent is dialing out, as discussed in the section above.  If you dont setup this activity the plugin will default to Offline.
 
 In the task router configuration in your twilio console, under the Flex Assignment workspace.  Simply add an activity that has availabilty set to false.
