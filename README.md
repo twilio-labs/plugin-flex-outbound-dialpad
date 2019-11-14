@@ -27,6 +27,8 @@ You can optionally setup a dedicated activity that the plugin will use when the 
 
 In the task router configuration in your twilio console, under the Flex Assignment workspace.  Simply add an activity that has availabilty set to false.
 
+**please take care** The outbound calls sid **is not** the sid used when populating the .env with TWILIO_TR_AVAILABLE_ACTIVITY_SID - that should be set to whatever activity is to be used to go __available__ while Outbound Calls is a state that puts you __unavailable__
+
 <img width="700px" src="screenshot/create-activity.png"/>
 
 ## Twilio Serverless Dependency
