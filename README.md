@@ -43,17 +43,19 @@ and then
 
 ## How to use
 
-1. Clone repository
+1. Setup dependencies above, The workflow and the outbound calls worker activity.
 
-2. Copy ./public/appConfig.example.js to ./public/appConfig.js and set your account sid
+2. Clone repository
 
-3.  run `npm install`
+3. Copy ./public/appConfig.example.js to ./public/appConfig.js and set your account sid
 
-4. copy ./dialpad-functions/.env.sample to ./dialpad-functions/.env and populate the appropriate SIDs.  The workflow sid should be the workflow dependency described above 
+4.  run `npm install`
 
-5.  cd into ./dialpad-functions/ then run `npm install` and then `twilio serverless:deploy` (optionally you can run locally with `twilio serverless:start --ngrok=""`
+5. copy ./dialpad-functions/.env.sample to ./dialpad-functions/.env and populate the appropriate SIDs.  The workflow sid should be the workflow dependency described above. The TWILIO_TR_AVAILABLE_ACTIVITY_SID should be the SID of your worker activity that makes you available.
 
-6.  Take note of the domain of where they deployed and update FUNCTIONS_HOSTNAME in ./src/OutboundDialingWithConferencePlugin.js
+6.  cd into ./dialpad-functions/ then run `npm install` and then `twilio serverless:deploy` (optionally you can run locally with `twilio serverless:start --ngrok=""`
+
+7.  Take note of the domain of where they deployed and update FUNCTIONS_HOSTNAME in ./src/OutboundDialingWithConferencePlugin.js
 
 7.  Update the DEFAULT_FROM_NUMBER in ./src/OutboundDialingWithConferencePlugin.js to a twilio number or a verified number associated with your account.
 
