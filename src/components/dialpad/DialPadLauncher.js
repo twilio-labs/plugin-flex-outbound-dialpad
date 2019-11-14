@@ -53,7 +53,7 @@ class DialPadDialog extends React.Component {
 
         //forcing update incase state event callback has been made
         if (doc.value && doc.value.call && doc.value.call.callSid) {
-          console.log("OUTBOUND DIALPAD: forucing update of sync doc for initial setup");
+          console.log("OUTBOUND DIALPAD: forcing update of sync doc for initial setup");
           DialpadSyncDoc.forceUpdateStatus(doc.value.call.callSid);
         }
 
