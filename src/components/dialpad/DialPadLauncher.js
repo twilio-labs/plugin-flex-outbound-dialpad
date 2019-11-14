@@ -50,6 +50,14 @@ class DialPadDialog extends React.Component {
       .then(doc => {
 
         console.log("OUTBOUND DIALPAD: Initial Sync Doc State: ", doc.value);
+
+        //forcing update incase call status event callback has somehow 
+        //failed to update sync doc
+        if (doc.value && doc.value.call && doc.value.call.callSid) {
+          console.log("OUTBOUND DIALPAD: forcing update of sync doc for initial setup");
+          DialpadSyncDoc.forceUpdateStatus(doc.value.call.callSid);
+        }
+
         // map and respond to sync doc state upon load
         this.setState(doc.value)
         this.processCallStatus()

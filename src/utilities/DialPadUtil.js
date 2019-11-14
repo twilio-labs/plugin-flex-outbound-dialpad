@@ -102,11 +102,7 @@ class CallStatusClass {
 	// isTerminalState is used to determine if syncDoc should be updated
 	// it needs to exclude the end state or it will peruputally update itself
 	canDial(call) {
-		return (call && (call.callStatus === "completed" ||
-			call.callStatus === "canceled" ||
-			call.callStatus === "failed" ||
-			call.callStatus === "busy" ||
-			call.callStatus === "no-answer" ||
+		return (call && (this.isTerminalState(call) ||
 			call.callStatus === "")) ? true : false
 	}
 
@@ -189,6 +185,39 @@ class DialpadSyncDocClass {
 					autoDial: false
 				});
 			})
+	}
+
+	forceUpdateStatus(callSid) {
+
+		const manager = Manager.getInstance();
+		const token = manager.user.token;
+
+		const endCallURL = `https://${FUNCTIONS_HOSTNAME}/outbound-dialing/forceUpdateSyncDoc`
+		const headers = {
+			'Content-Type': 'application/x-www-form-urlencoded'
+		}
+		const body = (
+			`token=${encodeURIComponent(token)}`
+			+ `&callSid=${encodeURIComponent(callSid)}`
+			+ `&syncDocName=${encodeURIComponent(this.syncDocName)}`
+		)
+
+		return new Promise((resolve, reject) => {
+
+			fetch(endCallURL, {
+				headers,
+				method: 'POST',
+				body
+			})
+				.then(response => response.json())
+				.then(json => {
+					resolve(json);
+				})
+				.catch(x => {
+					x = (x == "TypeError: Failed to fetch") ? "Backend not available" : x
+					resolve({ error: { message: x } })
+				})
+		})
 	}
 
 	removeAutoDial() {
