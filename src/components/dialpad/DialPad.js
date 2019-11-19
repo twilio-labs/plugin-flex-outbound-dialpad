@@ -355,7 +355,8 @@ export class DialPad extends React.Component {
       })
     }
 
-
+    // make sure dialpad always stops ringing if its closed
+    RingingService.stopRinging();
   }
 
   setAgentUnavailable() {
