@@ -18,7 +18,7 @@ import classNames from "classnames";
 import { connect } from "react-redux";
 
 
-import { blockForOutboundCall, unblockForOutBoundCall } from "../../eventListeners/workerClient/reservationCreated";
+import { blockForOutboundCall } from "../../eventListeners/workerClient/reservationCreated";
 import { CallControls, CallStatus, RingingService, DialpadSyncDoc } from '../../utilities/DialPadUtil'
 
 
@@ -309,8 +309,7 @@ export class DialPad extends React.Component {
   componentDidMount() {
     console.log("OUTBOUND DIALPAD: Mounting Dialpad Popup");
 
-    this.initialActivity = Manager.getInstance().workerClient.activity.name;
-    console.log("OUTBOUND DIALPAD: Initial activity when dialpad launched", this.initialActivity);
+    this.props.setInitialActivity(Manager.getInstance().workerClient.activity.name)
 
     document.addEventListener("keydown", this.eventkeydownListener, false);
     document.addEventListener("keyup", this.eventListener, false);
@@ -329,8 +328,6 @@ export class DialPad extends React.Component {
   }
 
   componentWillUnmount() {
-    const { call } = this.props;
-
     console.log("OUTBOUND DIALPAD: Unmounting Dialpad Popup");
 
 
@@ -338,22 +335,6 @@ export class DialPad extends React.Component {
     document.removeEventListener("keydown", this.eventkeydownListener, false);
     document.removeEventListener("keyup", this.eventListener, false);
     document.removeEventListener("paste", this.pasteListener, false);
-
-    // We only want to return to the agents activity when unmounting
-    // if the call back status handler hasnt already done it for us.
-    // We do it in the callback status handler to expedite this transition
-    // and ultimately expedite the acceptance of the call
-    // Also when a call is in progress, we want the reservation created handler
-    // to be responsible for unblocking inbounce voice tasks.  This is because
-    // it is possible that the dialpad could close before the reservation comes
-    // through, this would mean a voice call could come in.
-    if (call.callStatus !== "in-progress") {
-      console.log("OUTBOUND DIALPAD: Returning to initial activity when dialpad launched", this.initialActivity);
-      unblockForOutBoundCall();
-      Actions.invokeAction("SetActivity", {
-        activityName: this.initialActivity
-      })
-    }
 
     // make sure dialpad always stops ringing if its closed
     RingingService.stopRinging();
@@ -366,7 +347,7 @@ export class DialPad extends React.Component {
         activityName: "Outbound Calls"
       })
         .then(() => {
-          console.log("OUTBOUND DIALPAD: Agent is now Busy");
+          console.log("OUTBOUND DIALPAD: Agent is now on Outbound Calls");
           resolve();
         })
         .catch(error => {

@@ -1,7 +1,7 @@
 [
   {
     "name": "OutboundDialingWithConferencePlugin",
-    "version": "0.0.0",
+    "version": "1.2.3",
     "class": "OutboundDialingWithConferencePlugin",
     "requires": [
       {

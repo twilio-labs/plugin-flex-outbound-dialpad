@@ -24,7 +24,7 @@ if (!manager.strings.backendError) {
 }
 
 if (!manager.strings.activityStateUnavailable) {
-  manager.strings.activityStateUnavailable = "Tried to switch to programmed Activity State but State {{state1}} or {{state2}} arent unavailable";
+  manager.strings.activityStateUnavailable = "Tried to switch to programmed Activity State but State {{state1}} or {{state2}} are not configured";
 
   Notifications.registerNotification({
     id: "ActivityStateUnavailable",

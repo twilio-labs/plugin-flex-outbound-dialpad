@@ -28,23 +28,6 @@ const updateSyncDoc = (context, event) => {
   })
 }
 
-const makeWorkerAvailable = (context, event) => {
-  const client = context.getTwilioClient();
-
-  return new Promise(function (resolve, reject) {
-    client.taskrouter.workspaces(context.TWILIO_WORKSPACE_SID)
-      .workers(event.workerSid)
-      .update({ activitySid: context.TWILIO_TR_AVAILABLE_ACTIVITY_SID })
-      .then(() => resolve())
-      .catch(error => {
-        console.log("ERROR moving worker to available state", error);
-        resolve();
-      })
-
-  })
-}
-
-
 exports.handler = async function (context, event, callback) {
 
   console.log("callback for: ", event.CallSid);
@@ -59,20 +42,12 @@ exports.handler = async function (context, event, callback) {
   response.appendHeader('Content-Type', 'application/json');
   response.appendHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  var promiseArray = []
-
   // We dont need to know about calls that are completed as this is the natural part of the life cycle after the call has been answered
   if (event.CallStatus !== "completed") {
-    promiseArray.push(updateSyncDoc(context, event))
+    updateSyncDoc(context, event).then(() => callback(null, response))
+  } else {
+    callback(null, response)
   }
-
-  if (event.CallStatus === "in-progress") {
-    promiseArray.push(makeWorkerAvailable(context, event))
-  }
-
-  Promise.all(promiseArray).then(() => {
-    callback(null, response);
-  });
 
 };
 

@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { SideLink, Notifications } from "@twilio/flex-ui";
+import { SideLink, Notifications, Actions } from "@twilio/flex-ui";
 import Dialog from "@material-ui/core/Dialog";
 import PropTypes from "prop-types";
 import DialPad from "./DialPad";
@@ -8,6 +8,7 @@ import Close from "@material-ui/icons/Close";
 import styled from "react-emotion";
 import { withStyles } from "@material-ui/core/styles";
 import { CallStatus, RingingService, DialpadSyncDoc } from '../../utilities/DialPadUtil'
+import { unblockForOutBoundCall } from "../../eventListeners/workerClient/reservationCreated";
 
 const StyledDialog = withStyles({
   root: {
@@ -29,17 +30,23 @@ class DialPadDialog extends React.Component {
 
     this.setCallState = this.setCallState.bind(this);
     this.setNumberState = this.setNumberState.bind(this);
+    this.setInitialActivity = this.setInitialActivity.bind(this);
   }
 
 
 
   componentDidMount() {
-    console.log("OUTBOUND DIALPAD: Mounting DialPadLauncher");
+    console.log("OUTBOUND DIALPAD: Mounting DialPadLauncher v1.2.3");
     this.initSyncListener();
   }
 
   componentWillUnmount() {
     console.log("OUTBOUND DIALPAD: Unmounting DialPadLauncher");
+  }
+
+  setInitialActivity(activity) {
+    this.initialActivity = activity
+    console.log("OUTBOUND DIALPAD: Initial activity when dialpad launched", this.initialActivity);
   }
 
   initSyncListener() {
@@ -76,6 +83,35 @@ class DialPadDialog extends React.Component {
       })
   }
 
+  setAgentAvailable() {
+    return new Promise((resolve, reject) => {
+
+      Actions.invokeAction("SetActivity", {
+        activityName: "Available"
+      })
+        .then(() => {
+          console.log("OUTBOUND DIALPAD: Agent is now Available");
+          resolve();
+        })
+        .catch(error => {
+          Actions.invokeAction("SetActivity", {
+            activityName: "Idle"
+          })
+            .then(() => {
+              console.log("OUTBOUND DIALPAD: Agent is now Idle");
+              resolve();
+            })
+            .catch(() => {
+              Notifications.showNotification("ActivityStateUnavailable", {
+                state1: "Available",
+                state2: "Idle"
+              });
+              reject();
+            });
+        });
+    })
+  }
+
   processCallStatus() {
     const { call } = this.state;
     const { openDialpad, closeDialpad } = this.props;
@@ -91,7 +127,8 @@ class DialPadDialog extends React.Component {
       // by function handling the call status change
       // "in-progress" - this is just to reset the sync doc
       RingingService.stopRinging();
-      closeDialpad();
+      // sets agent availble and closes dialpad without resetting state for blocking inbound calls - this will be hanlded by the reservationCreated event handler
+      this.setAgentAvailable().then(() => closeDialpad()).catch(() => closeDialpad());
     } else if (CallStatus.isTerminalState(call)) {
       console.log("OUTBOUND DIALPAD: Call Status Update Terminal State");
       // any termination state will reset the sync doc
@@ -103,12 +140,18 @@ class DialPadDialog extends React.Component {
   }
 
   // used to ensure dialpad popup can't be closed while making
-  // an outbound call
+  // an outbound call and when manually closed (instead of auto answering
+  // call, the user returns to their previous activity
   handleClose() {
     const { call } = this.state;
     const { closeDialpad } = this.props;
 
     if (CallStatus.isCloseable(call)) {
+      console.log("OUTBOUND DIALPAD: Returning to initial activity when dialpad launched", this.initialActivity);
+      Actions.invokeAction("SetActivity", {
+        activityName: this.initialActivity
+      })
+      unblockForOutBoundCall();
       closeDialpad();
     } else {
       Notifications.showNotification("CantCloseDialpad");
@@ -157,6 +200,7 @@ class DialPadDialog extends React.Component {
           setCallState={this.setCallState}
           setNumberState={this.setNumberState}
           closeViewFunction={this.handleClose}
+          setInitialActivity={this.setInitialActivity}
         />
       </StyledDialog>
     );
