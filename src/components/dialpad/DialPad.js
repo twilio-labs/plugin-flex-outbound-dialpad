@@ -521,7 +521,8 @@ export class DialPad extends React.Component {
     const activeCall = this.props.activeCall;
 
     if (activeCall === "") {
-      if (this.props.number.length < 13) {
+      // e.164 max langh is 15 + 1 for the addition symbol
+      if (this.props.number.length < 16) {
         this.props.setNumberState(this.props.number + value);
       }
     } else {
