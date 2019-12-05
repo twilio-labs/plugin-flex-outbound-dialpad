@@ -90,12 +90,17 @@ class CallControlsClass {
 
 class CallStatusClass {
 
-	isTerminalState(call) {
-		return (call && (call.callStatus === "completed" ||
-			call.callStatus === "canceled" ||
+	isExceptionState(call) {
+		return (call && (
 			call.callStatus === "failed" ||
 			call.callStatus === "busy" ||
 			call.callStatus === "no-answer")) ? true : false
+	}
+
+	isTerminalState(call) {
+		return (call && (call.callStatus === "completed" ||
+			call.callStatus === "canceled" ||
+			this.isExceptionState(call))) ? true : false
 	}
 
 	// canDial includes an empty callStatus and is distinct with isTermanlState

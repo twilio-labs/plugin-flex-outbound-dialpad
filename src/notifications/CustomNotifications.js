@@ -52,3 +52,14 @@ if (!manager.strings.cantCloseDialpad) {
     type: NotificationType.warning
   });
 }
+
+if (!manager.strings.unableToConnect) {
+  manager.strings.unableToConnect = "The number you are dialing responded with: {{message}}";
+
+  Notifications.registerNotification({
+    id: "UnableToConnect",
+    content: "unableToConnect",
+    type: NotificationType.warning,
+    timeout: 6000
+  });
+}

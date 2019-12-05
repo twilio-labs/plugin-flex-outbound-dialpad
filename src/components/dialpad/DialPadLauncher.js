@@ -36,7 +36,7 @@ class DialPadDialog extends React.Component {
 
 
   componentDidMount() {
-    console.log("OUTBOUND DIALPAD: Mounting DialPadLauncher v1.2.3");
+    console.log("OUTBOUND DIALPAD: Mounting DialPadLauncher v1.2.4");
     this.initSyncListener();
   }
 
@@ -131,6 +131,11 @@ class DialPadDialog extends React.Component {
       this.setAgentAvailable().then(() => closeDialpad()).catch(() => closeDialpad());
     } else if (CallStatus.isTerminalState(call)) {
       console.log("OUTBOUND DIALPAD: Call Status Update Terminal State");
+      if (CallStatus.isExceptionState(call)) {
+        Notifications.showNotification("UnableToConnect", {
+          message: call.callStatus
+        });
+      }
       // any termination state will reset the sync doc
       // and make sure the dialpad isnt ringing
       RingingService.stopRinging();
