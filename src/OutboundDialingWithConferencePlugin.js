@@ -18,6 +18,19 @@ export const FUNCTIONS_HOSTNAME = '';
 export const DEFAULT_FROM_NUMBER = ""; // twilio account or verified number
 export const SYNC_CLIENT = new SyncClient(Manager.getInstance().user.token);
 
+function tokenUpdateHandler() {
+
+  console.log("OUTBOUND DIALPAD: Refreshing SYNC_CLIENT Token");
+
+  const loginHandler = Manager.getInstance().store.getState().flex.session.loginHandler;
+
+  const tokenInfo = loginHandler.getTokenInfo();
+  const accessToken = tokenInfo.token;
+
+  SYNC_CLIENT.updateToken(accessToken);
+}
+
+
 export default class OutboundDialingWithConferencePlugin extends FlexPlugin {
 
 
@@ -35,6 +48,8 @@ export default class OutboundDialingWithConferencePlugin extends FlexPlugin {
    * @param manager { import('@twilio/flex-ui').Manager }
    */
   init(flex, manager) {
+    //Add listener to loginHandler to refresh token when it expires
+    manager.store.getState().flex.session.loginHandler.on("tokenUpdated", tokenUpdateHandler);
     // Add custom extensions
     loadDialPadInterface.bind(this)(flex, manager);
     loadExternalTransferInterface.bind(this)(flex, manager)
