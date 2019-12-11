@@ -49,7 +49,7 @@ and then
 
 4.  run `npm install`
 
-5. copy ./dialpad-functions/.env.sample to ./dialpad-functions/.env and populate the appropriate SIDs.  The workflow sid should be the workflow dependency described above. The TWILIO_TR_AVAILABLE_ACTIVITY_SID should be the SID of your worker activity that makes you available.
+5. copy ./dialpad-functions/.env.sample to ./dialpad-functions/.env and populate the appropriate SIDs.  The workflow sid should be the workflow dependency described above.
 
 6.  cd into ./dialpad-functions/ then run `npm install` and then `twilio serverless:deploy` (optionally you can run locally with `twilio serverless:start --ngrok=""`
 
