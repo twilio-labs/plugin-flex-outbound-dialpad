@@ -3,10 +3,15 @@ import DialPadLauncher from "./DialPadLauncher";
 
 export function loadDialPadInterface(flex, manager) {
 
-	flex.SideNav.Content.add(
+	flex.MainHeader.Content.add(
 		<DialPadLauncher
 			key="sidebardialerbutton"
-		/>
-	);
+		/>,
+		{
+			sortOrder: 0,
+			align: "end"
+		}
+	)
+
 
 }

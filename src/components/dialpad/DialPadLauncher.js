@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { SideLink, Notifications, Actions } from "@twilio/flex-ui";
+import { IconButton, Notifications, Actions } from "@twilio/flex-ui";
 import Dialog from "@material-ui/core/Dialog";
 import PropTypes from "prop-types";
 import DialPad from "./DialPad";
@@ -245,22 +245,21 @@ export default class DialPadLauncher extends React.Component {
 
   render() {
     return (
-      <div>
-        <SideLink
+      <React.Fragment>
+        <IconButton
           {...this.props}
           icon="Call"
           iconActive="CallBold"
-          isActive={this.props.activeView === "dialer"}
           onClick={() => this.openDialpad()}
         >
           Dialpad
-        </SideLink>
+        </IconButton>
         <DialPadDialog
           open={this.state.isOpen}
           openDialpad={this.openDialpad}
           closeDialpad={this.closeDialpad}
         />
-      </div>
+      </React.Fragment>
     );
   }
 }
