@@ -152,10 +152,12 @@ class RingingServiceClass {
 	}
 
 	startRinging() {
+		console.log("OUTBOUND DIALPAD: Start Ringing Executing");
 		this.ringSound.play();
 	}
 
 	stopRinging() {
+		console.log("OUTBOUND DIALPAD: Stop Ringing executing");
 		this.ringSound.pause();
 		this.ringSound.currentTime = 0;
 	}
