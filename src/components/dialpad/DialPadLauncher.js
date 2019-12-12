@@ -36,7 +36,7 @@ class DialPadDialog extends React.Component {
 
 
   componentDidMount() {
-    console.log("OUTBOUND DIALPAD: Mounting DialPadLauncher v1.2.4");
+    console.log("OUTBOUND DIALPAD: Mounting DialPadLauncher v1.3.0");
     this.initSyncListener();
   }
 

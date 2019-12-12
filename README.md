@@ -1,6 +1,6 @@
 # plugin-flex-outbound-dialpad
 
-This plugin is intended to demonstrate how to make outbound calls from [Twilio Flex](https://www.twilio.com/flex) that use the native call orchestration so supervisor monitoring as well as cold and warm transfer solutions that are already available for inbound calls also work for outbound calls.  This plugin also provides the ability to perform external conferencing which leverages the work on [this project](https://github.com/trogers-twilio/plugin-external-conference-warm-transfer)
+This plugin is intended to demonstrate how to make outbound calls from [Twilio Flex](https://www.twilio.com/flex) that use the native call orchestration so the inbound call features such as supervisor monitoring as well as cold and warm transfer, also work for outbound calls.  This plugin also provides the ability to perform external conferencing which leverages the work on [this project](https://github.com/trogers-twilio/plugin-external-conference-warm-transfer)
 
 ### how it works
 This plugin uses a series of twilio functions to create an outbound call, listen for updates to that call and push the updates to the flex users via a sync document.  When the call is answered, the worker goes available in Flex to recieve the call via a task router task.  The front end puts the agent in a busy state while waiting for the task to arrive so that no other tasks are recieved.  To avoid a race condition, when the agent does go available, any tasks that are not the outbound call are auto rejected.  The worker goes into a busy state to avoid excessive reservation rejections.
@@ -23,9 +23,15 @@ Before using this plugin you must first create a dedicated TaskRouter workflow f
 ![alt text](https://raw.githubusercontent.com/jhunter-twilio/outbound-dialing-backend/master/screenshots/workflow-config.png)
 
 ### Activities
-You can optionally setup a dedicated activity that the plugin will use when the dialpad is in the process of making a call.  This is required to block any incoming voice calls while the agent is dialing out, as discussed in the section above.  If you dont setup this activity the plugin will default to Offline.
+This plugin forces the agent into an offline state to block calls while dialing out and an online state to accept the outbound call thats been placed.  You must ensure these are agent activity states are available for this plugin to work.  For both offline and available, two possible activities have been programmed, the plugin will try one of the activities and if its not available, try the other, if thats not available it will fail.  You can either provision one of the states or update the code to switch to an equivalent activity you do have configured in Task Router.
 
-In the task router configuration in your twilio console, under the Flex Assignment workspace.  Simply add an activity that has availabilty set to false.
+Available states programmed by default (One of these must be in Task Router)
+    - Available
+    - Idle
+
+Unavailable (One of these must be configured in Task Router)
+    - Outbound Calls
+    - Offline
 
 <img width="700px" src="screenshot/create-activity.png"/>
 
@@ -60,7 +66,7 @@ and then
 8. cd back to the root folder and run `npm start` to run locally or `npm run-script build` and deploy the generated ./build/plugin-outbound-dialing-with-conference.js to [twilio assests](https://www.twilio.com/console/assets/public) to include plugin with hosted Flex
 
 ## Important Notes
-- The plugin assumes an activity of "Outbound Calls" or "Offline" is configured for making the worker automatically unavailable, if these are not worker activity states that are available, you can either add them or update the code to change to a different state.
+- The plugin assumes an activity of "Outbound Calls" or "Offline" is configured for making the worker automatically unavailable, if these are not worker activity states that are available, you can either add them or update the code to change to a different state.  The same is true for ensuring an available activity of "Available" or "Idle" is in the system.
 
 - This plugin is not compatible with the dialpad plugin that is listed as an "Experimental feature" - the expiremental feature or more recently, the "Pre Release" feature must be turned off.
 
@@ -68,7 +74,7 @@ and then
 
 - This solution doesnt support and is not suitable for direct agent to agent dialing.
 
-- Since the call is routed to the agent only after the call is answered, there can be a perceived delay, typically less than a second, of the agent and the customer connecting on the conference.
+- Since the call is routed to the agent only after the call is answered, there can be a perceived delay, typically less than a second, of the agent and the customer connecting on the conference. It is adviced to configure the hold music for the outbound call to be silence, this creates a smoother experience for the person being dialed.
 
 ## TODOs
 
@@ -78,6 +84,8 @@ and then
 4. Update plugin builder to use serverless:cli for plugin asset deployment and align functions hostname automatically.
 
 ## Changelog
+
+v1.3 - Moved dialpad to main header to avoid the responsive rendering of the side nav unmounting when resizing the canvas.
 
 v1.2 - converted plugin to use Twilio functions and sync docs to manage state.  Also merged in external transfer features.
 
