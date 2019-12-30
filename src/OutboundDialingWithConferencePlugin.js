@@ -48,6 +48,18 @@ export default class OutboundDialingWithConferencePlugin extends FlexPlugin {
    * @param manager { import('@twilio/flex-ui').Manager }
    */
   init(flex, manager) {
+
+    var translationStrings = {
+      DIALPADExternalTransferHoverOver: "Add Conference Participant",
+      DIALPADExternalTransferPhoneNumberPopupHeader: "Enter phone number to add to the conference",
+      DIALPADExternalTransferPhoneNumberPopupTitle: "Phone Number",
+      DIALPADExternalTransferPhoneNumberPopupCancel: "Cancel",
+      DIALPADExternalTransferPhoneNumberPopupDial: "Dial"
+    }
+
+    //add translationStrings into manager.strings, preserving anything thats already there - this allows language to be updated outside of updating this plugin
+    manager.strings = { ...translationStrings, ...manager.strings }
+
     //Add listener to loginHandler to refresh token when it expires
     manager.store.getState().flex.session.loginHandler.on("tokenUpdated", tokenUpdateHandler);
     // Add custom extensions

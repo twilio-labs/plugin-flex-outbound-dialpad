@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { Actions, withTheme } from '@twilio/flex-ui';
+import { Actions, withTheme, Manager } from '@twilio/flex-ui';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
@@ -79,13 +79,13 @@ class ConferenceDialog extends React.Component {
       >
         <DialogContent>
           <DialogContentText>
-            Enter phone number to add to the conference
+            {Manager.getInstance().strings.DIALPADExternalTransferPhoneNumberPopupHeader}
           </DialogContentText>
           <TextField
             autoFocus
             margin="dense"
             id="conferenceNumber"
-            label="Phone Number"
+            label={Manager.getInstance().strings.DIALPADExternalTransferPhoneNumberPopupTitle}
             fullWidth
             value={this.state.conferenceTo}
             onKeyPress={this.handleKeyPress}
@@ -97,13 +97,13 @@ class ConferenceDialog extends React.Component {
             onClick={this.handleDialButton}
             color="primary"
           >
-            Dial
+            {Manager.getInstance().strings.DIALPADExternalTransferPhoneNumberPopupDial}
           </Button>
           <Button
             onClick={this.closeDialog}
             color="secondary"
           >
-            Cancel
+            {Manager.getInstance().strings.DIALPADExternalTransferPhoneNumberPopupCancel}
           </Button>
         </DialogActions>
       </Dialog>

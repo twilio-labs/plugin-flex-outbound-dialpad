@@ -3,7 +3,8 @@ import {
   Actions,
   IconButton,
   TaskHelper,
-  withTheme
+  withTheme,
+  Manager
 } from '@twilio/flex-ui';
 
 class ConferenceButton extends React.PureComponent {
@@ -24,7 +25,7 @@ class ConferenceButton extends React.PureComponent {
           disabled={!isLiveCall}
           onClick={this.handleClick}
           themeOverride={this.props.theme.CallCanvas.Button}
-          title="Add conference participant"
+          title={Manager.getInstance().strings.DIALPADExternalTransferHoverOver}
         />
       </React.Fragment>
     );
