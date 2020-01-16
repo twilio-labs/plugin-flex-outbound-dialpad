@@ -8,8 +8,8 @@ async function getCallTreatment(context, event) {
 	const callTreatmentUrl = encodeURI(
 		"https://" +
 		event.functionsDomain +
-		"/outbound-dialing/callTreatment?token=" +
-		event.token +
+		"/outbound-dialing/callTreatment?Token=" +
+		event.Token +
 		"&To=" +
 		event.To
 	);
