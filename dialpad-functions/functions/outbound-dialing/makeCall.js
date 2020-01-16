@@ -1,24 +1,5 @@
 const nodeFetch = require('node-fetch');
-
-async function getAuthentication(token, context) {
-
-	console.log('makeCall: Validating request token');
-
-	const tokenValidationApi = `https://${context.ACCOUNT_SID}:${context.AUTH_TOKEN}@iam.twilio.com/v1/Accounts/${context.ACCOUNT_SID}/Tokens/validate`;
-
-	const fetchResponse = await nodeFetch(tokenValidationApi, {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-		},
-		body: JSON.stringify({
-			token
-		})
-	});
-
-	const tokenResponse = await fetchResponse.json();
-	return tokenResponse;
-}
+const TokenValidator = require('twilio-flex-token-validator').functionValidator;
 
 async function getCallTreatment(context, event) {
 
@@ -91,7 +72,7 @@ function makeOutboundCall(context, event) {
 	});
 }
 
-exports.handler = async function (context, event, callback) {
+exports.handler = TokenValidator(async function (context, event, callback) {
 
 	console.log("makeCall: makeCall request parameters:");
 	console.log("makeCall: to:", event.To);
@@ -107,22 +88,12 @@ exports.handler = async function (context, event, callback) {
 	response.appendHeader('Content-Type', 'application/json');
 	response.appendHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-	const tokenResponse = await getAuthentication(event.token, context);
-
-	if (tokenResponse.valid) {
-		const makeCallResult = await makeOutboundCall(context, event)
-		if (makeCallResult.error) {
-			response.setStatusCode(makeCallResult.error.status)
-		}
-		response.setBody(makeCallResult);
-	} else {
-		response.setStatusCode(401);
-		response.setBody({
-			status: 401,
-			message: 'Your authentication token failed validation',
-		});
+	const makeCallResult = await makeOutboundCall(context, event)
+	if (makeCallResult.error) {
+		response.setStatusCode(makeCallResult.error.status)
 	}
+	response.setBody(makeCallResult);
 
 	callback(null, response);
 
-}
+});
