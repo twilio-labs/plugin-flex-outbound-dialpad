@@ -1,26 +1,7 @@
 const nodeFetch = require('node-fetch');
+const TokenValidator = require('twilio-flex-token-validator').functionValidator;
 
-async function getAuthentication(token, context) {
-
-  console.log('Validating request token');
-
-  const tokenValidationApi = `https://${context.ACCOUNT_SID}:${context.AUTH_TOKEN}@iam.twilio.com/v1/Accounts/${context.ACCOUNT_SID}/Tokens/validate`;
-
-  const fetchResponse = await nodeFetch(tokenValidationApi, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      token
-    })
-  });
-
-  const tokenResponse = await fetchResponse.json();
-  return tokenResponse;
-}
-
-exports.handler = async function (context, event, callback) {
+exports.handler = TokenValidator(async function (context, event, callback) {
   const response = new Twilio.Response();
   response.appendHeader('Access-Control-Allow-Origin', '*');
   response.appendHeader('Access-Control-Allow-Methods', 'OPTIONS POST');
@@ -29,7 +10,7 @@ exports.handler = async function (context, event, callback) {
 
   console.log('hold-conference-participant parameters:');
   Object.keys(event).forEach(key => {
-    if (key !== "token") {
+    if (key !== "token" || key !== "Token") {
       console.log(`${key}: ${event[key]}`);
     }
   });
@@ -40,23 +21,10 @@ exports.handler = async function (context, event, callback) {
   }
 
   const {
-    token,
     conference,
     participant,
     hold
   } = event;
-
-  console.log('Validating request token');
-  const tokenResponse = await getAuthentication(event.token, context);
-  if (!tokenResponse.valid) {
-    response.setStatusCode(401);
-    response.setBody({
-      status: 401,
-      message: 'Your authentication token failed validation',
-      detail: tokenResponse.message
-    });
-    return callback(null, response);
-  }
 
   console.log(`${hold ? 'Holding' : 'Unholding'} participant ${participant} `
     + `in conference ${conference}`);
@@ -82,4 +50,4 @@ exports.handler = async function (context, event, callback) {
   });
 
   return callback(null, response);
-};
+});

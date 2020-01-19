@@ -48,7 +48,7 @@ class ParticipantName extends React.Component {
       },
       method: 'POST',
       body: (
-        `token=${encodeURIComponent(token)}`
+        `Token=${encodeURIComponent(token)}`
         + `&callSid=${encodeURIComponent(callSid)}`
       )
     }).then(response => response.json())

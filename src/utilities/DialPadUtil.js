@@ -24,7 +24,7 @@ class CallControlsClass {
 			'Content-Type': 'application/x-www-form-urlencoded'
 		}
 		const body = (
-			`token=${encodeURIComponent(token)}`
+			`Token=${encodeURIComponent(token)}`
 			+ `&To=${encodeURIComponent(to)}`
 			+ `&From=${encodeURIComponent(from)}`
 			+ `&workerContactUri=${encodeURIComponent(workerContactUri)}`
@@ -63,7 +63,7 @@ class CallControlsClass {
 			'Content-Type': 'application/x-www-form-urlencoded'
 		}
 		const body = (
-			`token=${token}`
+			`Token=${token}`
 			+ `&CallSid=${CallSid}`
 		)
 

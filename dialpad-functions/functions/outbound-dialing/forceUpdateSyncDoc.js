@@ -1,24 +1,5 @@
 const nodeFetch = require('node-fetch');
-
-async function getAuthentication(token, context) {
-
-	console.log('Validating request token');
-
-	const tokenValidationApi = `https://${context.ACCOUNT_SID}:${context.AUTH_TOKEN}@iam.twilio.com/v1/Accounts/${context.ACCOUNT_SID}/Tokens/validate`;
-
-	const fetchResponse = await nodeFetch(tokenValidationApi, {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-		},
-		body: JSON.stringify({
-			token
-		})
-	});
-
-	const tokenResponse = await fetchResponse.json();
-	return tokenResponse;
-}
+const TokenValidator = require('twilio-flex-token-validator').functionValidator;
 
 const updateSyncDoc = (context, event) => {
 
@@ -54,7 +35,7 @@ const updateSyncDoc = (context, event) => {
 	})
 }
 
-exports.handler = async function (context, event, callback) {
+exports.handler = TokenValidator(async function (context, event, callback) {
 
 	console.log("forceUpdateSyncDoc request parameters:");
 	console.log("callSid:", event.callSid);
@@ -67,18 +48,8 @@ exports.handler = async function (context, event, callback) {
 	response.appendHeader('Content-Type', 'application/json');
 	response.appendHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-	const tokenResponse = await getAuthentication(event.token, context);
-
-	if (tokenResponse.valid) {
-		await updateSyncDoc(context, event)
-	} else {
-		response.setStatusCode(401);
-		response.setBody({
-			status: 401,
-			message: 'Your authentication token failed validation',
-		});
-	}
+	await updateSyncDoc(context, event)
 
 	callback(null, response);
 
-}
+});
