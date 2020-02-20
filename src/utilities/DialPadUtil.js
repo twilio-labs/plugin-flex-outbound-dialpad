@@ -203,7 +203,7 @@ class DialpadSyncDocClass {
 			'Content-Type': 'application/x-www-form-urlencoded'
 		}
 		const body = (
-			`token=${encodeURIComponent(token)}`
+			`Token=${encodeURIComponent(token)}`
 			+ `&callSid=${encodeURIComponent(callSid)}`
 			+ `&syncDocName=${encodeURIComponent(this.syncDocName)}`
 		)
