@@ -17,10 +17,10 @@ This plugin uses a series of twilio functions to create an outbound call, listen
 Before using this plugin you must first create a dedicated TaskRouter workflow for outbound calls. You can do this [here](https://www.twilio.com/console/taskrouter/dashboard). Make sure it is part of your **Flex Task Assignment** workspace.
 
 * Ensure there is the following matching workers expression for the only filter on the workspace.
- * `task.targetWorker === worker.contact_uri`
+  * `task.targetWorker === worker.contact_uri`
 * Ensure the **priorty** of the filter is set to **1000** (or at least the highest in the system).
 * Make sure the filter matches to a queue with Everyone on it. The default Everyone queue will work but if you want to seperate real time reporting for outbound calls, you should make a dedicated queue for it with a queue expression.
- * `1 === 1`
+  * `1 === 1`
 
 ![alt text](https://raw.githubusercontent.com/jhunter-twilio/outbound-dialing-backend/master/screenshots/workflow-config.png)
 
