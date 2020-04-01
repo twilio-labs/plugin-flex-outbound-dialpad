@@ -16,11 +16,11 @@ This plugin uses a series of twilio functions to create an outbound call, listen
 
 Before using this plugin you must first create a dedicated TaskRouter workflow for outbound calls. You can do this [here](https://www.twilio.com/console/taskrouter/dashboard). Make sure it is part of your **Flex Task Assignment** workspace.
 
-- ensure there is the following matching workers expression for the only filter on the workspace
-  - `task.targetWorker === worker.contact_uri`
-- ensure the **priorty** of the filter is set to **1000** (or at least the highest in the system)
-- make sure the filter matches to a queue with Everyone on it. The default Everyone queue will work but if you want to seperate real time reporting for outbound calls, you should make a dedicated queue for it with a queue expression
-  - `1 === 1`
+* Ensure there is the following matching workers expression for the only filter on the workspace.
+ * `task.targetWorker === worker.contact_uri`
+* Ensure the **priorty** of the filter is set to **1000** (or at least the highest in the system).
+* Make sure the filter matches to a queue with Everyone on it. The default Everyone queue will work but if you want to seperate real time reporting for outbound calls, you should make a dedicated queue for it with a queue expression.
+ * `1 === 1`
 
 ![alt text](https://raw.githubusercontent.com/jhunter-twilio/outbound-dialing-backend/master/screenshots/workflow-config.png)
 
@@ -62,21 +62,17 @@ and then
 
 ## Important Notes
 
-- The plugin assumes an activity of `Outbound Calls` or `Offline` is configured for making the worker automatically unavailable, if these are not worker activity states that are available, you can either add them or update the code to change to a different state.  The same is true for ensuring an available activity of `Available` or `Idle` is in the system.
-
-- This plugin is not compatible with the dialpad plugin that is listed as an `Experimental feature` - the expiremental feature or more recently, the `Pre Release` feature must be turned off.
-
-- If you place a `phone` attribute on the worker and assign it a twilio or verified number, the call will be placed from that number instead of the default number.
-
-- This solution doesnt support and is not suitable for direct agent to agent dialing.
-
-- Since the call is routed to the agent only after the call is answered, there can be a perceived delay, typically less than a second, of the agent and the customer connecting on the conference. It is adviced to configure the hold music for the outbound call to be silence, this creates a smoother experience for the person being dialed.
+* The plugin assumes an activity of `Outbound Calls` or `Offline` is configured for making the worker automatically unavailable, if these are not worker activity states that are available, you can either add them or update the code to change to a different state.  The same is true for ensuring an available activity of `Available` or `Idle` is in the system.
+* This plugin is not compatible with the dialpad plugin that is listed as an `Experimental feature` - the expiremental feature or more recently, the `Pre Release` feature must be turned off.
+* If you place a `phone` attribute on the worker and assign it a twilio or verified number, the call will be placed from that number instead of the default number.
+* This solution doesnt support and is not suitable for direct agent to agent dialing.
+* Since the call is routed to the agent only after the call is answered, there can be a perceived delay, typically less than a second, of the agent and the customer connecting on the conference. It is adviced to configure the hold music for the outbound call to be silence, this creates a smoother experience for the person being dialed.
 
 ## TODOs
 
-1. improve styling to better match base palette
-2. Add in improved text box for entering numbers with country code drop down
-3. Introduce callback task for making outbound calls from a callback 
+1. Improve styling to better match base palette.
+2. Add in improved text box for entering numbers with country code drop down.
+3. Introduce callback task for making outbound calls from a callback .
 4. Update plugin builder to use serverless:cli for plugin asset deployment and align functions hostname automatically.
 
 ## Changelog
