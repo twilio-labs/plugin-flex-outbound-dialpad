@@ -14,6 +14,6 @@
   },
   "dependencies": {
     "node-fetch": "^2.6.0",
-    "twilio-flex-token-validator": "^1.5.1"
+    "twilio-flex-token-validator": "^1.5.3"
   }
 }
