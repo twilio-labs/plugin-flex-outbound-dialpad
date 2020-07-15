@@ -19,9 +19,9 @@
   },
   "dependencies": {
     "flex-plugin": "1.3.4",
-    "react": "16.5.2",
+    "react": "16.13.1",
     "react-click-n-hold": "^1.0.7",
-    "react-dom": "16.5.2",
+    "react-dom": "16.13.1",
     "react-scripts": "1.1.5"
   },
   "config-overrides-path": "node_modules/react-app-rewire-flex-plugin"
