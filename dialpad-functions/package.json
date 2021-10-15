@@ -7,7 +7,7 @@
     "start": "twilio-run --env"
   },
   "devDependencies": {
-    "twilio-run": "^2.0.0"
+    "twilio-run": "^3.3.0"
   },
   "engines": {
     "node": "8.10.0"
