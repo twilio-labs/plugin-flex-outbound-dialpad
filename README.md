@@ -22,8 +22,6 @@ Before using this plugin you must first create a dedicated TaskRouter workflow f
 * Make sure the filter matches to a queue with Everyone on it. The default Everyone queue will work but if you want to seperate real time reporting for outbound calls, you should make a dedicated queue for it with a queue expression.
   * `1 === 1`
 
-![alt text](https://raw.githubusercontent.com/jhunter-twilio/outbound-dialing-backend/master/screenshots/workflow-config.png)
-
 ### Activities
 
 This plugin forces the agent into an offline state to block calls while dialing out and an online state to accept the outbound call thats been placed.  You must ensure these are agent activity states are available for this plugin to work.  For both offline and available, two possible activities have been programmed, the plugin will try one of the activities and if its not available, try the other, if thats not available it will fail.  You can either provision one of the states or update the code to switch to an equivalent activity that you do have configured in Task Router.
