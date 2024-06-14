@@ -13,7 +13,7 @@
     "node": "8.10.0"
   },
   "dependencies": {
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^2.6.7",
     "twilio-flex-token-validator": "^1.5.1"
   }
 }
